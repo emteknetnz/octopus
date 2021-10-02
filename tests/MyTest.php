@@ -10,6 +10,6 @@ class MyTest extends SapphireTest
     public function testItWorks()
     {
         $obj = MyDataObject::create(['Title' => 'MyTitle'])->write();
-        assertSame('MyTitle', MyDataObject::get()->first()->Title);
+        $this->assertSame('MyTitle', MyDataObject::get()->first()->Title);
     }
 }
