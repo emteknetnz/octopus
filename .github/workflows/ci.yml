@@ -58,6 +58,9 @@ jobs:
       - name: Composer dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
 
+      - name: dev/build
+        run: vendor/bin/sake dev/build flush=1
+
       - name: Execute tests
         run: vendor/bin/phpunit --verbose
         env:
