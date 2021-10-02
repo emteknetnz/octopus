@@ -39,7 +39,8 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           # dev is used to install phpize which is used by pecl
-          extensions: cli, curl, dev, dom, gd, intl, json, ldap, mbstring, mysql, tidy, xdebug, zip
+          # cli, dev
+          extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, xdebug, zip
           tools: composer:v2
           coverage: none
 
