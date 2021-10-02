@@ -52,26 +52,37 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
 
-      - name: Require silverstripe/installer
-        run: composer require silverstripe/installer:^4  --no-update --prefer-dist
+      - name: Composer
+        run: |
+          composer require silverstripe/installer:^4  --no-update --prefer-dist
+          composer update --prefer-dist --no-interaction --no-progress
 
-      - name: Composer dependencies
-        run: composer update --prefer-dist --no-interaction --no-progress
+      - name: Create .env
+        run: |
+          touch .env
+          echo 'SS_DATABASE_CLASS=MySQLDatabase' >> .env
+          echo 'SS_DATABASE_SERVER=127.0.0.1' >> .env
+          echo 'SS_DATABASE_PORT=3306' >> .env
+          echo 'SS_DATABASE_USERNAME=root' >> .env
+          echo 'SS_DATABASE_PASSWORD=root' >> .env
+          echo 'SS_DATABASE_NAME=SS_mysite' >> .env
+          echo 'SS_ENVIRONMENT_TYPE=dev' >> .env
+          echo 'SS_BASE_URL=http://localhost:8080/' >> .env
 
-      - name: dev/build
+      - name: Run dev/build flush=1
         run: vendor/bin/sake dev/build flush=1
 
       - name: Execute tests
         run: vendor/bin/phpunit --verbose
-        env:
-          SS_DATABASE_CLASS: MySQLDatabase
-          SS_DATABASE_SERVER: 127.0.0.1
-          SS_DATABASE_PORT: 3306
-          SS_DATABASE_USERNAME: root
-          SS_DATABASE_PASSWORD: root
-          SS_DATABASE_NAME: SS_mysite
-          SS_ENVIRONMENT_TYPE: dev
-          SS_BASE_URL: http://localhost:8080/
+        # env:
+        #   SS_DATABASE_CLASS: MySQLDatabase
+        #   SS_DATABASE_SERVER: 127.0.0.1
+        #   SS_DATABASE_PORT: 3306
+        #   SS_DATABASE_USERNAME: root
+        #   SS_DATABASE_PASSWORD: root
+        #   SS_DATABASE_NAME: SS_mysite
+        #   SS_ENVIRONMENT_TYPE: dev
+        #   SS_BASE_URL: http://localhost:8080/
           # DISPLAY: ":99"
           # XVFBARGS ":99 -ac -screen 0 1024x768x16"
 
