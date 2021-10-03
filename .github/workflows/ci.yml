@@ -214,6 +214,16 @@ jobs:
           # reset everthing to runner:docker
           #sudo chown -R runner:docker .
 
+      - name: show logs
+        if: always()
+        run: |
+          ls -al /var/logs/apache2
+          echo "error.log"
+          cat /var/log/apache2/error.log
+          echo ""
+          echo "access.log"
+          cat /var/log/apache2/access.log
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         if: always()
