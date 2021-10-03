@@ -102,7 +102,7 @@ jobs:
         run: |
           sudo apt remove -y --purge google-chrome-stable || true
           sudo apt install -y chromium-browser chromium-chromedriver
-          nohup sh -c "chromedriver --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
+          nohup sh -c "chromedriver --allowed-ips='127.0.0.1' --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat octopus
 
       - name: Upload artifacts
