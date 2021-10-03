@@ -86,11 +86,11 @@ jobs:
           vendor/bin/phpunit --verbose
 
       # this should only be done for behat
-      - name: Install and start Apache
+      - name: Configure apache
         run: |
           # apache2 is installed and running by default in ubuntu
-          sudo apt install libapache2-mod-php
-          sudo echo >> 'DirectoryIndex index.php index.html index.htm' > /etc/apache2/mods-enabled/dir.conf
+          sudo apt install libapache2-mod-php${{ matrix.php }}
+          sudo echo > 'DirectoryIndex index.php index.html index.htm' > /etc/apache2/mods-enabled/dir.conf
           # This script will create a 000-default.conf file with the pwd as the DocumentRoot
           php .github/things/apache2.php
           sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
