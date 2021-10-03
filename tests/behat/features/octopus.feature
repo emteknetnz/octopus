@@ -11,7 +11,7 @@ Feature: Test it works
 
   Scenario: Test it works
     # Given I am logged in with "ADMIN" permissions
-    When I go to "/about-us"
+    When I go to ""
     # Trigger screenshot
     Then I press the "Missing" button
     When I go to "/admin/pages"
