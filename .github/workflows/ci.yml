@@ -122,6 +122,8 @@ jobs:
           # This script will create a 000-default.conf file with the pwd as the DocumentRoot
           php .github/things/apache2.php
           sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
+          # enable mod_rewrite
+          sudo a2enmod rewrite
           # Files in the pwd with have the user:group runner:docker, so add www-data to the docker group
           sudo adduser www-data docker
           sudo systemctl restart apache2
@@ -135,10 +137,10 @@ jobs:
           cp behat.yml artifacts
           nohup sh -c "chromedriver --allowed-ips='' --port=9515 --log-path=artifacts/chromedriver.log --verbose" > /dev/null 2>&1 &
           #
-          mv .htaccess .xhtaccess
-          echo "<?php" > index.php
-          echo "phpinfo();" >> index.php
-          curl http://localhost
+          # mv .htaccess .xhtaccess
+          # echo "<?php" > index.php
+          # echo "phpinfo();" >> index.php
+          # curl http://localhost
           #
           vendor/bin/behat octopus
 
