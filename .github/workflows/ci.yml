@@ -88,21 +88,24 @@ jobs:
         run: |
           vendor/bin/phpunit --verbose
 
-      # - name: chormedriver beta
-      #   run: |
-      #     sudo add-apt-repository -y ppa:chromium-team/beta
-      #     sudo apt -q update
-
       - name: Make new behat.yml
         run: |
           php .github/things/behat.php
           cp behat.yml artifacts
 
-      - name: Run behat
+      - name: Install chromium + chromedriver
         run: |
           sudo apt remove -y --purge google-chrome-stable || true
+          # sudo add-apt-repository -y ppa:chromium-team/beta
+          sudo apt -q update
           sudo apt install -y chromium-browser chromium-chromedriver
+          
+      - name: Start chromedriver
+        run: |
           nohup sh -c "chromedriver --allowed-ips='127.0.0.1' --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
+
+      - name: Run behat
+        run: |
           vendor/bin/behat octopus
 
       - name: Upload artifacts
