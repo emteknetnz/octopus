@@ -102,6 +102,7 @@ jobs:
           nohup sh -c "chromedriver --allowed-ips=127.0.0.1 --port=9515 --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
 
       - name: Run behat
+        continue-on-error: true
         run: |
           vendor/bin/behat octopus
 
