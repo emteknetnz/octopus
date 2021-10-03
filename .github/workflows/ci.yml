@@ -156,8 +156,8 @@ jobs:
 
       - name: debug
         run: |
-          mkdir public
-          cp .github/things/debug.php public/debug.php
+          rm .htaccess
+          cp .github/things/debug.php debug.php
           sudo chmod -R 0777 .
           ls -al
           curl http://localhost/debug.php
