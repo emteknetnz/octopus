@@ -107,8 +107,8 @@ jobs:
           # - http://localhost:8080 fails in behat with - net::ERR_CONNECTION_REFUSED
           # - http://127.0.0.1 fails in behat with - Failed to connect to 127.0.0.1 port 9515: Connection refused (Behat\Mink\Exception\DriverException)
           # - http://0.0.0.0 works the same as http://localhost
-          # echo 'SS_BASE_URL=http://localhost' >> .env
-          echo 'SS_BASE_URL=http://0.0.0.0' >> .env
+          echo 'SS_BASE_URL=http://localhost' >> .env
+          #echo 'SS_BASE_URL=http://0.0.0.0' >> .env
 
       - name: dev/build flush=1
         run: |
@@ -152,11 +152,11 @@ jobs:
           # reload permission for runner without logging out and in again (i think?)
           # newgrp www-data
           #sudo chown -R www-data:www-data .
-          #
-          #
-          sudo echo '0.0.0.0 localhost' >> /etc/hosts
-          #
           sudo systemctl restart apache2
+          # Try doing bizarre stuff
+          touch hosts
+          echo '0.0.0.0 localhost' >> hosts
+          sudo mp hosts /etc/hosts
           # Test that webserver is working
           curl http://localhost
 
