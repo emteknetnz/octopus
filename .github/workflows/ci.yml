@@ -113,6 +113,9 @@ jobs:
           php .github/things/behat.php
           cp behat.yml artifacts
           
+      - name: Test webserver
+        run: |
+          curl http://localhost
       # - name: Start chromedriver
       #   run: |
       #     #which google-chrome
