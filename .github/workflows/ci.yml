@@ -110,9 +110,11 @@ jobs:
       - name: Start chromedriver
         run: |
           which google-chrome
+          google-chrome --version
+          which chromedriver
           chromedriver -v
-          sudo touch /usr/bin/google-chrome
-          sudo echo 'google-chrome-stable "$@"' > /usr/bin/google-chrome
+          # sudo touch /usr/bin/google-chrome
+          # sudo echo 'google-chrome-stable "$@"' > /usr/bin/google-chrome
           nohup sh -c "chromedriver --allowed-ips='127.0.0.1' --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
 
       - name: Run behat
