@@ -156,9 +156,10 @@ jobs:
 
       - name: debug
         run: |
-          ls -al
           mkdir public
           cp .github/things/debug.php public/debug.php
+          sudo chmod -R 0777 .
+          ls -al
           curl http://localhost/debug.php
 
       - name: curl test
