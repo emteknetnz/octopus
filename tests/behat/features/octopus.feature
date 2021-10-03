@@ -4,6 +4,8 @@ Feature: Test it works
 
   Background:
     Given the "group" "EDITOR group" has permissions "CMS_ACCESS_LeftAndMain"
+    Given I take a screenshot after every step
+    Given I dump the rendered HTML after every step
 
   Scenario: Test it works
     Given I am logged in with "EDITOR" permissions

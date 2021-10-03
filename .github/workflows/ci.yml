@@ -56,12 +56,15 @@ jobs:
       #  - if [[ "$TRAVIS_BRANCH" =~ ^[1-9]$ ]] || [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+$ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}.x-dev"; elif [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+\.[0-9]+ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}"; else export COMPOSER_ROOT_VERSION="dev-${TRAVIS_BRANCH}"; fi
       # - echo "$COMPOSER_ROOT_VERSION"
 
+      - name: Create dirs
+        run: |
+          mkdir artifacts
+
       - name: Composer
         run: |
           composer require silverstripe/installer:^4 --no-update --prefer-dist
           composer require silverstripe/recipe-testing:^1 --no-update --prefer-dist
           composer update --prefer-dist --no-interaction --no-progress
-          mkdir artifacts
           cp composer.json artifacts
           cp composer.lock artifacts
 
@@ -78,10 +81,12 @@ jobs:
           echo 'SS_BASE_URL=http://localhost:8080/' >> .env
 
       - name: Run dev/build flush=1
-        run: vendor/bin/sake dev/build flush=1
+        run: |
+          vendor/bin/sake dev/build flush=1
 
       - name: Run phpunit
-        run: vendor/bin/phpunit --verbose
+        run: |
+          vendor/bin/phpunit --verbose
 
       # - name: chormedriver beta
       #   run: |
@@ -95,8 +100,8 @@ jobs:
           nohup sh -c "chromedriver --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat octopus
 
-      # - name: Store artifacts
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: logs
-      #     ...
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+          path: artifacts
