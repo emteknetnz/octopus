@@ -129,7 +129,7 @@ jobs:
           # not working, so try the other way around
           # sudo adduser runner www-data
           # try a different way to add user to group
-          sudo usermod -aG www-data runer
+          sudo usermod -aG www-data runner
           # su - $USER
           # reload permission for runner without logging out and in again (i think?)
           newgrp www-data
