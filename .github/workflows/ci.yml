@@ -187,7 +187,9 @@ jobs:
           sudo chown -R www-data:www-data .
           sudo chown -R runner:docker artifacts
           nohup sh -c "chromedriver --allowed-ips='' --port=9515 --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
-          vendor/bin/behat octopus
+          sudo -u www-data sh -c 'vendor/bin/behat octopus'
+          #sudo -H -u www-data sh -c 'vendor/bin/behat octopus'
+          # vendor/bin/behat octopus
           sudo chown -R runner:docker .
 
       - name: Upload artifacts
