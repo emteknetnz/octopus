@@ -55,21 +55,22 @@ jobs:
       - name: Install and start Apache
         run: |
           # sudo apt update
-          sudo apt install -y apache2
+          # sudo apt install -y apache2 # already the latest
           pwd
           ls
-          php .github/things/apache2.php
+          ls /var/www
+          # php .github/things/apache2.php
           cat /etc/apache2/sites-enabled/000-default.conf
-          sudo adduser $(whoami) www-data
-          sudo adduser $(whoami) root
-          sudo adduser root www-data
-          sudo chown -R www-data:www-data /etc/apache2/sites-available/
-          sudo chmod -R 777 /etc/apache2/sites-available/
-          sudo chown -R www-data:www-data /var/www/html/
-          sudo chmod -R 777 /var/www/html/
+          # sudo adduser $(whoami) www-data
+          # sudo adduser $(whoami) root
+          # sudo adduser root www-data
+          # sudo chown -R www-data:www-data /etc/apache2/sites-available/
+          # sudo chmod -R 777 /etc/apache2/sites-available/
+          # sudo chown -R www-data:www-data /var/www/html/
+          # sudo chmod -R 777 /var/www/html/
           # cp .github/things/docker_apache_default /etc/apache2/sites-enabled/000-default.conf
-          sudo systemctl restart apache2 
-          curl -I 127.0.0.1
+          #sudo systemctl restart apache2 
+          #curl -I 127.0.0.1
 
       - name: Checkout code
         uses: actions/checkout@v2
