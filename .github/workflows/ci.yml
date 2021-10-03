@@ -136,12 +136,12 @@ jobs:
           sudo cp hosts /etc/hosts
 
           # Permissions
-          sudo chown -R www-data:www-data.
+          sudo chown -R www-data:www-data .
           # chmod - a bit brute force, still need to allow the default runner:docker user to be
-          $ able to create files such as artifacts
+          # able to create files such as artifacts
           # Was having issues adding the current 'runner' user to the www-data group - possibly need to log out
           # and log back in again for it to take effect, which isn't possible in this context
-          sudo chmod -R 0777
+          sudo chmod -R 0777 .
 
           # Test that webserver is working
           curl http://localhost
@@ -164,7 +164,7 @@ jobs:
           # This script will update behat.yml to work with headless chrome
           php .github/things/behat.php
           cp behat.yml artifacts
-          nohup sh -c "chromedriver --allowed-ips='' --port=9515 --log-path=artifacts/chromedriver.log --verbose" > /dev/null 2>&1 &
+          nohup sh -c "chromedriver --allowed-ips='' --port=9515 --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat octopus
 
       - name: Upload artifacts
