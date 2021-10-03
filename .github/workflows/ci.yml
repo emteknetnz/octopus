@@ -52,7 +52,7 @@ jobs:
         # with:
         #   php-version: ${{ matrix.php }}
 
-      # This is kind of slow at around 55 seconds, it's only because I was having
+      # This is kind of slow at around 44 seconds, it's only because I was having
       # issues with libapache2-mod-php which is needed for behat
       # Ideally would use shivammathur/setup-php@v2 instead which is far faster
       # could possibly just use this installation method conditional on it being a behat job
@@ -113,20 +113,44 @@ jobs:
         run: |
           vendor/bin/phpunit --verbose
 
-      # this should only be done for behat
-      - name: Configure apache
+      - name: apache a
         run: |
-          # apache2 is installed and running by default in ubuntu
-          # sudo apt install libapache2-mod-php${{ matrix.php }}
-          sudo echo > 'DirectoryIndex index.php index.html index.htm' > /etc/apache2/mods-enabled/dir.conf
-          # This script will create a 000-default.conf file with the pwd as the DocumentRoot
+          sudo echo 'DirectoryIndex index.php index.html index.htm' > /etc/apache2/mods-enabled/dir.conf
+
+      - name: apache b
+        run: |
           php .github/things/apache2.php
+
+      - name: apache c
+        run: |
           sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
-          # Files in the pwd with have the user:group runner:docker, so add www-data to the docker group
+
+      - name: apache d
+        run: |
           sudo adduser www-data docker
+      
+      - name: apache e
+        run: |
           sudo systemctl restart apache2
-          # Test that webserver is working
+
+      - name: apache f
+        run: |
           curl http://localhost
+
+      # this should only be done for behat
+      # - name: Configure apache
+      #   run: |
+      #     # apache2 is installed and running by default in ubuntu
+      #     # sudo apt install libapache2-mod-php${{ matrix.php }}
+      #     sudo echo 'DirectoryIndex index.php index.html index.htm' > /etc/apache2/mods-enabled/dir.conf
+      #     # This script will create a 000-default.conf file with the pwd as the DocumentRoot
+      #     php .github/things/apache2.php
+      #     sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
+      #     # Files in the pwd with have the user:group runner:docker, so add www-data to the docker group
+      #     sudo adduser www-data docker
+      #     sudo systemctl restart apache2
+      #     # Test that webserver is working
+      #     curl http://localhost
 
       - name: behat
         run: |
