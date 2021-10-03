@@ -91,14 +91,15 @@ jobs:
 
       - name: Set permissions
         run: |
-          ls -al
-          echo $(whoami)
-          sudo adduser $(whoami) www-data
+          #ls -al
+          #echo $(whoami)
+          sudo adduser www-data docker
+          #sudo adduser $(whoami) www-data
           #sudo adduser $(whoami) root
           #sudo adduser root www-data
-          sudo chown -R www-data:www-data /etc/apache2/sites-available/
-          sudo chown -R www-data:www-data $(pwd)
-          ls -al
+          #sudo chown -R www-data:www-data /etc/apache2/sites-available/
+          #sudo chown -R www-data:www-data $(pwd)
+          #ls -al
 
       - name: Create .env
         run: |
