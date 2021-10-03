@@ -124,9 +124,15 @@ jobs:
           sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
           # enable mod_rewrite
           sudo a2enmod rewrite
+          #
+          # None of these adding to user group changes make any difference, even add www-data to docker group
+          # - curl http://localhost works
+          # - curl http://localhost/about-us does not
+          # - chrome cannot resolve http://localhost/
+          #
           # Files in the pwd with have the user:group runner:docker, so add www-data to the docker group (makes sense??)
           #sudo adduser www-data docker
-          sudo usermod -aG docker www-data
+          #sudo usermod -aG docker www-data
           #
           # not working, so try the other way around
           # sudo adduser runner www-data
@@ -145,7 +151,15 @@ jobs:
           # Test that webserver is working
           curl http://localhost
 
-      - name: test /admin
+      - name: curl /
+        run: |
+          curl http://localhost/
+
+      - name: curl /about-us
+        run: |
+          curl http://localhost/about-us
+
+      - name: curl /admin
         run: |
           curl http://localhost/admin
 
