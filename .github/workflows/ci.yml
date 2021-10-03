@@ -37,6 +37,10 @@ jobs:
     name: PHP ${{ matrix.php }}
 
     steps:
+      - name: Create dirs
+        run: |
+          mkdir artifacts
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -47,6 +51,13 @@ jobs:
           tools: composer:v2
           coverage: none
 
+      - name: Install and start Apache
+        run: |
+          # sudo apt update
+          sudo apt install -y apache2
+          hostname -I
+          curl -I localhost
+
       - name: Checkout code
         uses: actions/checkout@v2
         with:
@@ -56,9 +67,6 @@ jobs:
       #  - if [[ "$TRAVIS_BRANCH" =~ ^[1-9]$ ]] || [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+$ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}.x-dev"; elif [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+\.[0-9]+ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}"; else export COMPOSER_ROOT_VERSION="dev-${TRAVIS_BRANCH}"; fi
       # - echo "$COMPOSER_ROOT_VERSION"
 
-      - name: Create dirs
-        run: |
-          mkdir artifacts
 
       - name: Composer
         run: |
@@ -103,12 +111,12 @@ jobs:
           nohup sh -c "chromedriver --allowed-ips=127.0.0.1 --port=9515 --log-path=artifacts/chromedriver.log --verbose" > /dev/null 2>&1 &
 
       - name: Run behat
-        continue-on-error: true
         run: |
           vendor/bin/behat octopus
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
+        if: always()
         with:
           name: artifacts
           path: artifacts
