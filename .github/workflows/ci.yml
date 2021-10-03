@@ -59,10 +59,12 @@ jobs:
           # sudo apt install -y apache2 # already the latest
           #pwd
           #ls
+          cat /etc/apache2/sites-enabled/000-default.conf
           #ls /var/www/html
           php .github/things/apache2.php
           cat 000-default.conf
           sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
+          cat /etc/apache2/sites-enabled/000-default.conf
           #cat /etc/apache2/sites-enabled/000-default.conf
           # sudo adduser $(whoami) www-data
           # sudo adduser $(whoami) root
