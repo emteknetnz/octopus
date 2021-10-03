@@ -190,9 +190,12 @@ jobs:
           # keep artifacts/screenshots as www-data
           sudo chown runner:docker artifacts
           nohup sh -c "chromedriver --allowed-ips='' --port=9515 --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
-          sudo -u www-data sh -c 'vendor/bin/behat octopus'
+          # TODO: remove --allowed-ips and --port
+          sudo su - www-data -c 'vendor/bin/behat octopus'
+          #sudo -u www-data sh -c 'vendor/bin/behat octopus'
           #sudo -H -u www-data sh -c 'vendor/bin/behat octopus'
           # vendor/bin/behat octopus
+          # reset everthing to runner:docker
           sudo chown -R runner:docker .
 
       - name: Upload artifacts
