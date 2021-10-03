@@ -12,7 +12,8 @@
     "autoload": {
         "psr-4": {
             "emteknetnz\\Octopus\\": "src/",
-            "emteknetnz\\Octopus\\Tests\\": "tests/"
+            "emteknetnz\\Octopus\\Tests\\": "tests/",
+            "emteknetnz\\Octopus\\Tests\\Behat\\Context\\": "tests/behat/src/"
         }
     },
     "minimum-stability": "dev",

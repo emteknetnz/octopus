@@ -55,7 +55,11 @@ jobs:
       - name: Composer
         run: |
           composer require silverstripe/installer:^4  --no-update --prefer-dist
+          composer require silverstripe/recipe-testing:^1  --no-update --prefer-dist
           composer update --prefer-dist --no-interaction --no-progress
+          mkdir artifacts
+          cp composer.json artifacts
+          cp composer.lock artifacts
 
       - name: Create .env
         run: |
@@ -72,19 +76,13 @@ jobs:
       - name: Run dev/build flush=1
         run: vendor/bin/sake dev/build flush=1
 
-      - name: Execute tests
+      - name: Run phpunit
         run: vendor/bin/phpunit --verbose
-        # env:
-        #   SS_DATABASE_CLASS: MySQLDatabase
-        #   SS_DATABASE_SERVER: 127.0.0.1
-        #   SS_DATABASE_PORT: 3306
-        #   SS_DATABASE_USERNAME: root
-        #   SS_DATABASE_PASSWORD: root
-        #   SS_DATABASE_NAME: SS_mysite
-        #   SS_ENVIRONMENT_TYPE: dev
-        #   SS_BASE_URL: http://localhost:8080/
-          # DISPLAY: ":99"
-          # XVFBARGS ":99 -ac -screen 0 1024x768x16"
+        
+      - name: Run behat
+        run: |
+          nohup sh -c "chromedriver --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
+          vendor/bin/behat octopus
 
       # - name: Store artifacts
       #   uses: actions/upload-artifact@v2
