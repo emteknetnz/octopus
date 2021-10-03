@@ -126,7 +126,7 @@ jobs:
           sudo a2enmod rewrite
           # Files in the pwd with have the user:group runner:docker, so add www-data to the docker group (makes sense??)
           #sudo adduser www-data docker
-          sudo usermod -aG www-data docker
+          sudo usermod -aG docker www-data
           #
           # not working, so try the other way around
           # sudo adduser runner www-data
