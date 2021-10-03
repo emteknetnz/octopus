@@ -150,27 +150,25 @@ jobs:
           # and log back in again for it to take effect, which isn't possible in this context
           # sudo chmod -R 0777 .
 
-          # run apache as 'runner' user instead of www-data
-          ls -al /etc/apache2
-          cat envvars
+          # run apache as 'runner:docer' instead of 'www-data:www-data'
+          #ls -al /etc/apache2
+          #cat envvars
           sudo cp envvars /etc/apache2/envvars
           sudo chmod 644 /etc/apache2/envvars
           sudo chown root:root /etc/apache2/envvars
-          ls -al /etc/apache2
+          #ls -al /etc/apache2
 
           # restart apache
           sudo systemctl restart apache2
 
-          # Test that webserver is working
-          curl http://localhost
-
-      # - name: debug
-      #   run: |
-      #     rm .htaccess
-      #     cp .github/things/debug.php debug.php
-      #     sudo chmod -R 0777 .
-      #     ls -al
-      #     curl http://localhost/debug.php
+      - name: debug
+        run: |
+          mv .htaccess .xhtaccess
+          cp .github/things/debug.php debug.php
+          sudo chmod -R 0777 debug.php
+          ls -al
+          curl http://localhost/debug.php
+          mv .xhtaccess .htaccess
 
       - name: curl test
         run: |
@@ -203,7 +201,9 @@ jobs:
 
           # https://www.redhat.com/sysadmin/suid-sgid-sticky-bit
           #sudo adduser www-data docker
-          #sudo chmod -R 1777 .
+          # sudo chmod -R 1777 .
+
+          sudo chmod -R 777 .
 
           nohup sh -c "chromedriver --allowed-ips='' --port=9515 --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat octopus
