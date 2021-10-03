@@ -37,6 +37,7 @@ jobs:
     name: PHP ${{ matrix.php }}
 
     steps:
+      # disabling this because ran into dependency issues trying to install libapache2-mod-php
       # - name: Setup PHP
       #   uses: shivammathur/setup-php@v2
       #   with:
@@ -59,10 +60,9 @@ jobs:
           sudo apt update
           sudo apt install -y libapache2-mod-php${{ matrix.php }}
           sudo apt install -y php${{ matrix.php }}
-          sudo apt install -y php${{ matrix.php }}-bcmath
           sudo apt install -y php${{ matrix.php }}-cli
           sudo apt install -y php${{ matrix.php }}-curl
-          sudo apt install -y php${{ matrix.php }}-dev
+          # sudo apt install -y php${{ matrix.php }}-dev
           sudo apt install -y php${{ matrix.php }}-dom
           sudo apt install -y php${{ matrix.php }}-gd
           sudo apt install -y php${{ matrix.php }}-intl
@@ -73,6 +73,9 @@ jobs:
           sudo apt install -y php${{ matrix.php }}-tidy
           sudo apt install -y php${{ matrix.php }}-xdebug
           sudo apt install -y php${{ matrix.php }}-zip
+          # This this verison of PHP instead of the default ubuntu php8.0 install
+          sudo rm /etc/alternatives/php
+          sudo ln -s /usr/bin/php${{ matrix.php }} /etc/alternatives/php
           # Test
           php -v
 
