@@ -2,8 +2,8 @@ Feature: Test it works
   As a CI system
   I want to test it works
 
-  Background:
-    Given the "group" "EDITOR group" has permissions "CMS_ACCESS_LeftAndMain"
+  #Background:
+    #Given the "group" "EDITOR group" has permissions "CMS_ACCESS_LeftAndMain"
 
     # requires behat-extension pr to be permsed first
     #Given I take a screenshot after every step

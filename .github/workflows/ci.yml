@@ -138,15 +138,6 @@ jobs:
           # Permissions
           # default is runner:docker
 
-          # debug
-          rm .htaccess
-          touch index.php
-          echo "<?php" > index.php
-          echo "echo shell_exec('whoami');" >> index.php
-          echo "$processUser = posix_getpwuid(posix_geteuid());" >> index.php
-          echo "echo ' -- ' . $processUser['name'];" >> index.php
-          cat index.php
-
           # Add www-data to docker group
           #sudo adduser www-data docker
 
@@ -158,17 +149,19 @@ jobs:
           # able to create files such as artifacts
           # Was having issues adding the current 'runner' user to the www-data group - possibly need to log out
           # and log back in again for it to take effect, which isn't possible in this context
-          sudo chmod -R 0777 .        
-
-          id www-data
-          ls -al
+          sudo chmod -R 0777 .
 
           # Test that webserver is working
           curl http://localhost
 
+      - name: debug
+        run: |
+          cp .github/things/debug.php public/debug.php
+          curl http://localhost/debug.php
+
       - name: curl test
         run: |
-          curl http://localhost/about-us
+          curl http://localhost/
 
       # - name: curl /
       #   run: |
