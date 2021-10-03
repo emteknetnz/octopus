@@ -124,9 +124,12 @@ jobs:
           sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
           # enable mod_rewrite
           sudo a2enmod rewrite
-          # Files in the pwd with have the user:group runner:docker, so add www-data to the docker group
-          sudo adduser www-data docker
+          # Files in the pwd with have the user:group runner:docker, so add www-data to the docker group (makes sense??)
+          # sudo adduser www-data docker
+          # not working, so try the other way around
           sudo adduser runner www-data
+          # reload permission for runner without logging out and in again (i think?)
+          newgrp www-data
           sudo chown -R www-data:www-data .
           sudo systemctl restart apache2
           # Test that webserver is working
