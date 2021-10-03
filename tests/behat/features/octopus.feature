@@ -10,8 +10,8 @@ Feature: Test it works
     #Given I dump the rendered HTML after every step
 
   Scenario: Test it works
-    Given I am logged in with "ADMIN" permissions
-    When I go to "/"
+    # Given I am logged in with "ADMIN" permissions
+    When I go to "/about-us"
     # Trigger screenshot
     Then I press the "Missing" button
     When I go to "/admin/pages"
