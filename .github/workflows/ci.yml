@@ -128,7 +128,6 @@ jobs:
           php .github/things/apache2.php
           sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
           sudo a2enmod rewrite
-          sudo systemctl restart apache2
 
           # Try doing bizarre stuff
           touch hosts
@@ -150,6 +149,19 @@ jobs:
           # Was having issues adding the current 'runner' user to the www-data group - possibly need to log out
           # and log back in again for it to take effect, which isn't possible in this context
           # sudo chmod -R 0777 .
+
+          # run apache as 'runner' user instead of www-data
+          ls -al /etc/apache2
+          touch envvars
+          echo $(cat /etc/apache2/envvars) > envvars
+          echo export APACHE_RUN_USER=runner >> envvars
+          echo export APACHE_RUN_GROUP=docker >> envvars
+          sudo cp envvars /etc/apache2/envvars
+          sudo chown root:root /etc/apache2/envvars
+          ls -al /etc/apache2
+
+          # restart apache
+          sudo systemctl restart apache2
 
           # Test that webserver is working
           curl http://localhost
@@ -192,8 +204,8 @@ jobs:
           #sudo chown runner:docker artifacts
 
           # https://www.redhat.com/sysadmin/suid-sgid-sticky-bit
-          sudo adduser www-data docker
-          sudo chmod -R 1777 .
+          #sudo adduser www-data docker
+          #sudo chmod -R 1777 .
 
           nohup sh -c "chromedriver --allowed-ips='' --port=9515 --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat octopus
