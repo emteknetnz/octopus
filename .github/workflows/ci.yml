@@ -51,6 +51,9 @@ jobs:
         # with:
         #   php-version: ${{ matrix.php }}
 
+      # This is kind of slow at around 55 seconds, it's only because I was having
+      # issues with libapache2-mod-php
+      # Ideally would use shivammathur/setup-php@v2 instead which is far faster
       - name: Install PHP
         run: |
           # Make all php versions other than the current main version available
@@ -124,9 +127,6 @@ jobs:
       - name: Configure apache
         run: |
           # apache2 is installed and running by default in ubuntu
-          sudo apt update
-          sudo apt upgrade
-          sudo apt install libapache2-mod-php
           # sudo apt install libapache2-mod-php${{ matrix.php }}
           sudo echo > 'DirectoryIndex index.php index.html index.htm' > /etc/apache2/mods-enabled/dir.conf
           # This script will create a 000-default.conf file with the pwd as the DocumentRoot
