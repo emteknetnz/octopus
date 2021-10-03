@@ -10,7 +10,10 @@ Feature: Test it works
     #Given I dump the rendered HTML after every step
 
   Scenario: Test it works
-    Given I am logged in with "EDITOR" permissions
+    Given I am logged in with "ADMIN" permissions
+    When I go to "/"
+    # Trigger screenshot
+    Then I press the "Missing" button
     When I go to "/admin/pages"
     # Uncomment to trigger screenshot, will fail in ci
     # Then I press the "Missing" button
