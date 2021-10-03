@@ -130,9 +130,12 @@ jobs:
           # sudo adduser runner www-data
           # try a different way to add user to group
           sudo usermod -aG www-data runner
-          # su - $USER
+          # reload permissions
+          id
+          su - $USER
+          id
           # reload permission for runner without logging out and in again (i think?)
-          newgrp www-data
+          # newgrp www-data
           sudo chown -R www-data:www-data .
           sudo systemctl restart apache2
           # Test that webserver is working
