@@ -20,4 +20,4 @@ default:
                 - "--disable-gpu"
       browser_name: chrome
     SilverStripe\BehatExtension\Extension:
-      screenshot_path: '%paths.base%/artifacts/screenshots'
+      screenshot_path: '%paths.base%/artifacts'
