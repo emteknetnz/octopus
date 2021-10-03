@@ -152,10 +152,6 @@ jobs:
 
           # run apache as 'runner' user instead of www-data
           ls -al /etc/apache2
-          touch envvars
-          printf $(cat /etc/apache2/envvars) > envvars
-          echo 'export APACHE_RUN_USER=runner' >> envvars
-          echo 'export APACHE_RUN_GROUP=docker' >> envvars
           cat envvars
           sudo cp envvars /etc/apache2/envvars
           sudo chmod 644 /etc/apache2/envvars
