@@ -131,6 +131,7 @@ jobs:
           curl http://localhost
 
       - name: test /admin
+        run: |
           curl http://localhost/admin
 
       - name: behat
