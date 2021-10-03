@@ -65,9 +65,9 @@ jobs:
           #ls
           #ls /var/www/html
           php .github/things/apache2.php
-          cat 000-default.conf
+          #cat 000-default.conf
           sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
-          cat /etc/apache2/sites-enabled/000-default.conf
+          #cat /etc/apache2/sites-enabled/000-default.conf
           # sudo adduser $(whoami) www-data
           # sudo adduser $(whoami) root
           # sudo adduser root www-data
@@ -117,17 +117,18 @@ jobs:
           php .github/things/behat.php
           cp behat.yml artifacts
           
-      - name: Start chromedriver
-        run: |
-          which google-chrome
-          google-chrome --version
-          which chromedriver
-          chromedriver -v
-          # --log-level=INFO
-          nohup sh -c "chromedriver --allowed-ips=127.0.0.1 --port=9515 --log-path=artifacts/chromedriver.log --verbose" > /dev/null 2>&1 &
+      # - name: Start chromedriver
+      #   run: |
+      #     #which google-chrome
+      #     #google-chrome --version
+      #     #which chromedriver
+      #     #chromedriver -v
+      #     # --log-level=INFO
+      #     nohup sh -c "chromedriver --allowed-ips='' --port=9515 --log-path=artifacts/chromedriver.log --verbose" > /dev/null 2>&1 &
 
       - name: Run behat
         run: |
+          nohup sh -c "chromedriver --allowed-ips='' --port=9515 --log-path=artifacts/chromedriver.log --verbose" > /dev/null 2>&1 &
           vendor/bin/behat octopus
 
       - name: Upload artifacts
