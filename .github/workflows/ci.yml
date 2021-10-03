@@ -93,6 +93,11 @@ jobs:
       #     sudo add-apt-repository -y ppa:chromium-team/beta
       #     sudo apt -q update
 
+      - name: Make new behat.yml
+        run: |
+          php .github/things/behat.php
+          cp behat.yml artifacts
+
       - name: Run behat
         run: |
           sudo apt remove -y --purge google-chrome-stable || true
