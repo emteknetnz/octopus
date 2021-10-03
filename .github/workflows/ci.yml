@@ -51,12 +51,14 @@ jobs:
           tools: composer:v2
           coverage: none
 
+      # this should only be done for behat
       - name: Install and start Apache
         run: |
           # sudo apt update
           sudo apt install -y apache2
           hostname -I
-          curl -I localhost
+          cat /etc/hosts
+          curl -I 127.0.0.1
 
       - name: Checkout code
         uses: actions/checkout@v2
