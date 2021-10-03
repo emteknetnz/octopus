@@ -64,13 +64,14 @@ jobs:
           #cat 000-default.conf
           sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
           #cat /etc/apache2/sites-enabled/000-default.conf
-          sudo adduser $(whoami) www-data
-          sudo adduser $(whoami) root
-          sudo adduser root www-data
-          sudo chown -R www-data:www-data /etc/apache2/sites-available/
-          sudo chmod -R 777 /etc/apache2/sites-available/
-          sudo chown -R www-data:www-data $(pwd)
-          sudo chmod -R 777 $(pwd)
+          # sudo adduser $(whoami) www-data
+          # sudo adduser $(whoami) root
+          # sudo adduser root www-data
+          # sudo chown -R www-data:www-data /etc/apache2/sites-available/
+          # sudo chmod -R 777 /etc/apache2/sites-available/
+          # sudo chown -R www-data:www-data $(pwd)
+          # sudo chmod -R 777 $(pwd)
+          # ls -al
           # cp .github/things/docker_apache_default /etc/apache2/sites-enabled/000-default.conf
           sudo systemctl restart apache2
           curl -I 127.0.0.1
@@ -87,6 +88,7 @@ jobs:
           mkdir artifacts
           cp composer.json artifacts
           cp composer.lock artifacts
+          sudo chown -R www-data:www-data $(pwd)
 
       - name: Create .env
         run: |
