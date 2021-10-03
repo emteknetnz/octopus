@@ -37,20 +37,52 @@ jobs:
     name: PHP ${{ matrix.php }}
 
     steps:
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          # dev is used to install phpize which is used by pecl
-          # cli, dev
-          extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, xdebug, zip
-          tools: composer:v2
-          coverage: none
+      # - name: Setup PHP
+      #   uses: shivammathur/setup-php@v2
+      #   with:
+      #     php-version: ${{ matrix.php }}
+      #     extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, xdebug, zip
+      #     tools: composer:v2
+      #     coverage: none
 
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          php-version: ${{ matrix.php }}
+        # with:
+        #   php-version: ${{ matrix.php }}
+
+      - name: Install PHP
+        run: |
+          # Make all php versions other than the current main version available
+          sudo apt update && sudo sudo apt install -y software-properties-common
+          sudo add-apt-repository -y ppa:ondrej/php
+          sudo add-apt-repository -y ppa:ondrej/apache2
+          sudo apt update
+          sudo apt install -y libapache2-mod-php${{ matrix.php }}
+          sudo apt install -y php${{ matrix.php }}
+          sudo apt install -y php${{ matrix.php }}-bcmath
+          sudo apt install -y php${{ matrix.php }}-cli
+          sudo apt install -y php${{ matrix.php }}-curl
+          sudo apt install -y php${{ matrix.php }}-dev
+          sudo apt install -y php${{ matrix.php }}-dom
+          sudo apt install -y php${{ matrix.php }}-gd
+          sudo apt install -y php${{ matrix.php }}-intl
+          sudo apt install -y php${{ matrix.php }}-json
+          sudo apt install -y php${{ matrix.php }}-ldap
+          sudo apt install -y php${{ matrix.php }}-mbstring
+          sudo apt install -y php${{ matrix.php }}-mysql
+          sudo apt install -y php${{ matrix.php }}-tidy
+          sudo apt install -y php${{ matrix.php }}-xdebug
+          sudo apt install -y php${{ matrix.php }}-zip
+          # Test
+          php -v
+
+      - name: Install composer
+        run: |
+          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+          php -r "if (hash_file('sha384', 'composer-setup.php') === '906a84df04cea2aa72f40b5f787e49f22d4c2f19492ac310e8cba5b96ac8b64115ac402c8cd292b8a03482574915d1a8') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+          php composer-setup.php
+          php -r "unlink('composer-setup.php');"
+          sudo mv composer.phar /usr/local/bin/composer
 
       # COMPORER_ROOT_VERSION - need to get access to the current branch in github actions
       #  - if [[ "$TRAVIS_BRANCH" =~ ^[1-9]$ ]] || [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+$ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}.x-dev"; elif [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+\.[0-9]+ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}"; else export COMPOSER_ROOT_VERSION="dev-${TRAVIS_BRANCH}"; fi
@@ -77,11 +109,11 @@ jobs:
           echo 'SS_ENVIRONMENT_TYPE=dev' >> .env
           echo 'SS_BASE_URL=http://localhost' >> .env
 
-      - name: Run dev/build flush=1
+      - name: dev/build flush=1
         run: |
           vendor/bin/sake dev/build flush=1
 
-      - name: Run phpunit
+      - name: phpunit
         run: |
           vendor/bin/phpunit --verbose
 
@@ -90,7 +122,9 @@ jobs:
         run: |
           # apache2 is installed and running by default in ubuntu
           sudo apt update
+          sudo apt upgrade
           sudo apt install libapache2-mod-php
+          # sudo apt install libapache2-mod-php${{ matrix.php }}
           sudo echo > 'DirectoryIndex index.php index.html index.htm' > /etc/apache2/mods-enabled/dir.conf
           # This script will create a 000-default.conf file with the pwd as the DocumentRoot
           php .github/things/apache2.php
@@ -101,7 +135,7 @@ jobs:
           # Test that webserver is working
           curl http://localhost
 
-      - name: Run behat
+      - name: behat
         run: |
           # This script will update behat.yml to work with headless chrome
           php .github/things/behat.php
