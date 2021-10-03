@@ -78,7 +78,7 @@ jobs:
           echo 'SS_DATABASE_PASSWORD=root' >> .env
           echo 'SS_DATABASE_NAME=SS_mysite' >> .env
           echo 'SS_ENVIRONMENT_TYPE=dev' >> .env
-          echo 'SS_BASE_URL=http://localhost >> .env
+          echo 'SS_BASE_URL=http://localhost' >> .env
 
       - name: Run dev/build flush=1
         run: |
