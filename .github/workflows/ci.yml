@@ -129,8 +129,9 @@ jobs:
           sudo systemctl restart apache2
           # Test that webserver is working
           curl http://localhost
+
+      - name: test /admin
           curl http://localhost/admin
-          curl http://127.0.0.1
 
       - name: behat
         run: |
@@ -138,12 +139,6 @@ jobs:
           php .github/things/behat.php
           cp behat.yml artifacts
           nohup sh -c "chromedriver --allowed-ips='' --port=9515 --log-path=artifacts/chromedriver.log --verbose" > /dev/null 2>&1 &
-          #
-          # mv .htaccess .xhtaccess
-          # echo "<?php" > index.php
-          # echo "phpinfo();" >> index.php
-          # curl http://localhost
-          #
           vendor/bin/behat octopus
 
       - name: Upload artifacts
