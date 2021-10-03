@@ -1,5 +1,5 @@
 <?php
-$pwd = trim(shell_exec('pwd'));
+$pwd = rtrim(trim(shell_exec('pwd')), '/');
 $s = file_get_contents('.github/things/000-default.conf');
 #$s = file_get_contents('/etc/apache2/sites-enabled/000-default.conf');
 $s = str_replace('$pwd', $pwd, $s);
