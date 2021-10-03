@@ -136,7 +136,11 @@ jobs:
           sudo cp hosts /etc/hosts
 
           # Permissions
-          sudo chown -R www-data:www-data .
+          # default is runner:docker
+          sudo adduser www-data docker
+          # sudo chown -R www-data:www-data .
+          sudo chown -R www-data:docker .
+
           # chmod - a bit brute force, still need to allow the default runner:docker user to be
           # able to create files such as artifacts
           # Was having issues adding the current 'runner' user to the www-data group - possibly need to log out
