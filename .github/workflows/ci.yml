@@ -103,7 +103,10 @@ jobs:
           echo 'SS_DATABASE_PASSWORD=root' >> .env
           echo 'SS_DATABASE_NAME=SS_mysite' >> .env
           echo 'SS_ENVIRONMENT_TYPE=dev' >> .env
-          echo 'SS_BASE_URL=http://localhost:8080' >> .env
+          # http://localhost should be correct.  http://localhost:8080 will have net::ERR_CONNECTION_REFUSED
+          # issues in behat, so chrome seems like it is actually connecting, seems like an apache configuration issue? 
+          # echo 'SS_BASE_URL=http://localhost' >> .env
+          echo 'SS_BASE_URL=http://127.0.0.1' >> .env
 
       - name: dev/build flush=1
         run: |
