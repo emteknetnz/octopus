@@ -94,6 +94,8 @@ jobs:
           #ls -al
           #echo $(whoami)
           sudo adduser www-data docker
+          id www-data
+          sudo chmod -R 777 .
           #sudo adduser $(whoami) www-data
           #sudo adduser $(whoami) root
           #sudo adduser root www-data
