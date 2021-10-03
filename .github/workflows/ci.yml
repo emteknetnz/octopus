@@ -138,6 +138,14 @@ jobs:
           # Permissions
           # default is runner:docker
 
+          # debug
+          rm .htaccess
+          touch index.php
+          echo "<?php" > index.php
+          echo "echo shell_exec('whoami');" >> index.php
+          echo "$processUser = posix_getpwuid(posix_geteuid());" >> index.php
+          echo "echo ' -- ' . $processUser['name'];" >> index.php
+
           # Add www-data to docker group
           sudo adduser www-data docker
 
