@@ -14,3 +14,4 @@ if (!$m) {
 }
 $c = str_replace('suites: []', 'suites: ' . $m[1], $a);
 file_put_contents('behat.yml', $c);
+echo "$c\n\n";
