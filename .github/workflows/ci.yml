@@ -126,6 +126,8 @@ jobs:
           sudo a2enmod rewrite
           # Files in the pwd with have the user:group runner:docker, so add www-data to the docker group
           sudo adduser www-data docker
+          sudo adduser runner www-data
+          sudo chown -R www-data:www-data .
           sudo systemctl restart apache2
           # Test that webserver is working
           curl http://localhost

@@ -11,9 +11,9 @@ Feature: Test it works
 
   Scenario: Test it works
     # Given I am logged in with "ADMIN" permissions
-    When I go to ""
+    When I go to "/"
     # Trigger screenshot
     Then I press the "Missing" button
     When I go to "/admin/pages"
     # Uncomment to trigger screenshot, will fail in ci
-    # Then I press the "Missing" button
+    Then I press the "Missing" button
