@@ -127,7 +127,10 @@ jobs:
           # Files in the pwd with have the user:group runner:docker, so add www-data to the docker group (makes sense??)
           # sudo adduser www-data docker
           # not working, so try the other way around
-          sudo adduser runner www-data
+          # sudo adduser runner www-data
+          # try a different way to add user to group
+          sudo usermod -aG www-data runer
+          # su - $USER
           # reload permission for runner without logging out and in again (i think?)
           newgrp www-data
           sudo chown -R www-data:www-data .
