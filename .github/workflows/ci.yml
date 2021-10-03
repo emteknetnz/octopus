@@ -125,18 +125,21 @@ jobs:
           # enable mod_rewrite
           sudo a2enmod rewrite
           # Files in the pwd with have the user:group runner:docker, so add www-data to the docker group (makes sense??)
-          # sudo adduser www-data docker
+          #sudo adduser www-data docker
+          #
           # not working, so try the other way around
           # sudo adduser runner www-data
           # try a different way to add user to group
-          sudo usermod -aG www-data runner
+          #sudo usermod -aG www-data runner
           # reload permissions
-          id
-          su - $USER
-          id
+          # uid=1001(runner) gid=121(docker) groups=121(docker),4(adm),101(systemd-journal)
+          #id
+          #su - $USER
+          #id
           # reload permission for runner without logging out and in again (i think?)
           # newgrp www-data
-          sudo chown -R www-data:www-data .
+          #sudo chown -R www-data:www-data .
+          #
           sudo systemctl restart apache2
           # Test that webserver is working
           curl http://localhost
