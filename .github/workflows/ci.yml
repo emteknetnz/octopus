@@ -38,6 +38,7 @@ jobs:
 
     steps:
       # disabling this because ran into dependency issues trying to install libapache2-mod-php
+      # Should conditionally use this for non-behat jobs
       # - name: Setup PHP
       #   uses: shivammathur/setup-php@v2
       #   with:
@@ -52,8 +53,9 @@ jobs:
         #   php-version: ${{ matrix.php }}
 
       # This is kind of slow at around 55 seconds, it's only because I was having
-      # issues with libapache2-mod-php
+      # issues with libapache2-mod-php which is needed for behat
       # Ideally would use shivammathur/setup-php@v2 instead which is far faster
+      # could possibly just use this installation method conditional on it being a behat job
       - name: Install PHP
         run: |
           # Make all php versions other than the current main version available
@@ -82,12 +84,14 @@ jobs:
           # Test
           php -v
 
+      # This only needs to be done if not using shivammathur/setup-php@v2
       - name: Install composer
         run: |
+          php -r "copy('https://composer.github.io/installer.sig', 'installer.sig');"
           php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-          php -r "if (hash_file('sha384', 'composer-setup.php') === '906a84df04cea2aa72f40b5f787e49f22d4c2f19492ac310e8cba5b96ac8b64115ac402c8cd292b8a03482574915d1a8') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
-          php composer-setup.php
-          php -r "unlink('composer-setup.php');"
+          php -r "if (hash_file('sha384', 'composer-setup.php') === file_get_contents('installer.sig')) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+          if [ -f composer.setup ]; then php composer-setup.php && rm composer-setup.php; fi
+          rm installer.sig
           sudo mv composer.phar /usr/local/bin/composer
 
       # COMPORER_ROOT_VERSION - need to get access to the current branch in github actions
