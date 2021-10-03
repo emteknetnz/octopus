@@ -145,13 +145,14 @@ jobs:
           echo "echo shell_exec('whoami');" >> index.php
           echo "$processUser = posix_getpwuid(posix_geteuid());" >> index.php
           echo "echo ' -- ' . $processUser['name'];" >> index.php
+          cat index.php
 
           # Add www-data to docker group
-          sudo adduser www-data docker
+          #sudo adduser www-data docker
 
           # Make www-data owner of everything
           # sudo chown -R www-data:www-data .
-          sudo chown -R www-data:docker .
+          #sudo chown -R www-data:docker .
 
           # chmod - a bit brute force, still need to allow the default runner:docker user to be
           # able to create files such as artifacts
