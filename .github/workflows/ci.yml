@@ -129,6 +129,8 @@ jobs:
           sudo systemctl restart apache2
           # Test that webserver is working
           curl http://localhost
+          curl http://localhost/admin
+          curl http://127.0.0.1
 
       - name: behat
         run: |
