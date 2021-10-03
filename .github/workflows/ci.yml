@@ -93,11 +93,12 @@ jobs:
           php .github/things/behat.php
           cp behat.yml artifacts
 
-      - name: chromestuff
-        run: |
-          which chromedriver
-          #CDV=php -r '$d="[0-9]+";preg_match("# ($d\.$d\.$d)#",shell_exec("google-chrome-stable --version"),$m);$s=$m[1];echo file_get_contents("https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$s");'
-          # google-chrome-stable --version
+      # - name: chromestuff
+      #   run: |
+      #     which chromedriver
+      #     chromedriver -v
+      #     #CDV=php -r '$d="[0-9]+";preg_match("# ($d\.$d\.$d)#",shell_exec("google-chrome-stable --version"),$m);$s=$m[1];echo file_get_contents("https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$s");'
+      #     # google-chrome-stable --version
 
       # - name: Install chromium + chromedriver
       #   run: |
@@ -108,8 +109,11 @@ jobs:
           
       - name: Start chromedriver
         run: |
-          # nohup sh -c "chromedriver --allowed-ips='127.0.0.1' --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
-          chromedriver --allowed-ips='127.0.0.1'
+          which google-chrome
+          chromedriver -v
+          sudo touch /usr/bin/google-chrome
+          sudo echo 'google-chrome-stable "$@"' > /usr/bin/google-chrome
+          nohup sh -c "chromedriver --allowed-ips='127.0.0.1' --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
 
       - name: Run behat
         run: |
