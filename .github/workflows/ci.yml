@@ -89,8 +89,8 @@ jobs:
           composer require silverstripe/installer:^4 --no-update --prefer-dist
           composer require silverstripe/recipe-testing:^1 --no-update --prefer-dist
           composer update --prefer-dist --no-interaction --no-progress
-          cp composer.json artifacts/
-          cp composer.lock artifacts/
+          cp composer.json artifacts/composer.json
+          cp composer.lock artifacts/composer.lock
 
       - name: Create .env
         run: |
@@ -115,7 +115,7 @@ jobs:
       - name: Make new behat.yml
         run: |
           php .github/things/behat.php
-          cp behat.yml artifacts/
+          cp behat.yml artifacts/behat.yml
           
       # - name: Start chromedriver
       #   run: |
