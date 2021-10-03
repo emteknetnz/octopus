@@ -122,38 +122,12 @@ jobs:
       - name: Configure apache
         run: |
           # apache2 is installed and running by default in ubuntu
-          # sudo apt install libapache2-mod-php${{ matrix.php }}
+          # Update dir.conf to use index.php as the primary index doc
           sudo cp .github/things/dir.conf /etc/apache2/mods-enabled/dir.conf
           # This script will create a 000-default.conf file with the pwd as the DocumentRoot
           php .github/things/apache2.php
           sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
-
-          # enable mod_rewrite
           sudo a2enmod rewrite
-
-          #
-          # None of these adding to user group changes make any difference, even adding www-data to docker group
-          # - curl http://localhost works
-          # - curl http://localhost/about-us works
-          # - curl -L http://localhost/admin - works - follows redirects
-          # - chrome cannot resolve http://localhost/ - screenshot says "The requested page could not be found"
-          #
-          # Files in the pwd with have the user:group runner:docker, so add www-data to the docker group (makes sense??)
-          #sudo adduser www-data docker
-          #sudo usermod -aG docker www-data
-          #
-          # not working, so try the other way around
-          # sudo adduser runner www-data
-          # try a different way to add user to group
-          #sudo usermod -aG www-data runner
-          # reload permissions
-          # uid=1001(runner) gid=121(docker) groups=121(docker),4(adm),101(systemd-journal)
-          #id
-          #su - $USER
-          #id
-          # reload permission for runner without logging out and in again (i think?)
-          # newgrp www-data
-          #sudo chown -R www-data:www-data .
           sudo systemctl restart apache2
 
           # Try doing bizarre stuff
@@ -161,8 +135,13 @@ jobs:
           echo '0.0.0.0 localhost' >> hosts
           sudo cp hosts /etc/hosts
 
-          # Confirm if it's permissions or not
-          sudo chmod -R 0777 .
+          # Permissions
+          sudo chown -R www-data:www-data.
+          # chmod - a bit brute force, still need to allow the default runner:docker user to be
+          $ able to create files such as artifacts
+          # Was having issues adding the current 'runner' user to the www-data group - possibly need to log out
+          # and log back in again for it to take effect, which isn't possible in this context
+          sudo chmod -R 0777
 
           # Test that webserver is working
           curl http://localhost
