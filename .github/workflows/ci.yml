@@ -52,10 +52,14 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
 
+      # COMPORER_ROOT_VERSION - need to get access to the current branch in github actions
+      #  - if [[ "$TRAVIS_BRANCH" =~ ^[1-9]$ ]] || [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+$ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}.x-dev"; elif [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+\.[0-9]+ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}"; else export COMPOSER_ROOT_VERSION="dev-${TRAVIS_BRANCH}"; fi
+      # - echo "$COMPOSER_ROOT_VERSION"
+
       - name: Composer
         run: |
-          composer require silverstripe/installer:^4  --no-update --prefer-dist
-          composer require silverstripe/recipe-testing:^1  --no-update --prefer-dist
+          composer require silverstripe/installer:^4 --no-update --prefer-dist
+          composer require silverstripe/recipe-testing:^1 --no-update --prefer-dist
           composer update --prefer-dist --no-interaction --no-progress
           mkdir artifacts
           cp composer.json artifacts
@@ -78,9 +82,16 @@ jobs:
 
       - name: Run phpunit
         run: vendor/bin/phpunit --verbose
-        
+
+      # - name: chormedriver beta
+      #   run: |
+      #     sudo add-apt-repository -y ppa:chromium-team/beta
+      #     sudo apt -q update
+
       - name: Run behat
         run: |
+          sudo apt remove -y --purge google-chrome-stable || true
+          sudo apt install -y chromium-browser chromium-chromedriver
           nohup sh -c "chromedriver --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat octopus
 

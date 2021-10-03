@@ -4,7 +4,7 @@ default:
       paths:
         - "%paths.modules.octopus%/tests/behat/features"
       contexts:
-        - SilverStripe\Admin\Tests\Behat\Context\AdminContext
+        # - SilverStripe\Admin\Tests\Behat\Context\AdminContext
         - SilverStripe\BehatExtension\Context\BasicContext
         - SilverStripe\BehatExtension\Context\EmailContext
         - SilverStripe\BehatExtension\Context\LoginContext
