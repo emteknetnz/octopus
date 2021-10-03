@@ -137,7 +137,11 @@ jobs:
 
           # Permissions
           # default is runner:docker
+
+          # Add www-data to docker group
           sudo adduser www-data docker
+
+          # Make www-data owner of everything
           # sudo chown -R www-data:www-data .
           sudo chown -R www-data:docker .
 
@@ -145,23 +149,30 @@ jobs:
           # able to create files such as artifacts
           # Was having issues adding the current 'runner' user to the www-data group - possibly need to log out
           # and log back in again for it to take effect, which isn't possible in this context
-          sudo chmod -R 0777 .
+          sudo chmod -R 0777 .        
+
+          id www-data
+          ls -al
 
           # Test that webserver is working
           curl http://localhost
 
-      - name: curl /
-        run: |
-          curl http://localhost/
-
-      - name: curl /about-us
+      - name: curl test
         run: |
           curl http://localhost/about-us
 
-      - name: curl /admin
-        run: |
-          # -L means follow redirects
-          curl -L http://localhost/admin
+      # - name: curl /
+      #   run: |
+      #     curl http://localhost/
+
+      # - name: curl /about-us
+      #   run: |
+      #     curl http://localhost/about-us
+
+      # - name: curl /admin
+      #   run: |
+      #     # -L means follow redirects
+      #     curl -L http://localhost/admin
 
       - name: behat
         run: |
