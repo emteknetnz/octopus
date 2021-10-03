@@ -37,10 +37,6 @@ jobs:
     name: PHP ${{ matrix.php }}
 
     steps:
-      - name: Create dirs
-        run: |
-          mkdir artifacts
-
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -83,15 +79,14 @@ jobs:
       #  - if [[ "$TRAVIS_BRANCH" =~ ^[1-9]$ ]] || [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+$ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}.x-dev"; elif [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+\.[0-9]+ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}"; else export COMPOSER_ROOT_VERSION="dev-${TRAVIS_BRANCH}"; fi
       # - echo "$COMPOSER_ROOT_VERSION"
 
-
       - name: Composer
         run: |
           composer require silverstripe/installer:^4 --no-update --prefer-dist
           composer require silverstripe/recipe-testing:^1 --no-update --prefer-dist
           composer update --prefer-dist --no-interaction --no-progress
-          ls
-          cp composer.json artifacts/composer.json
-          cp composer.lock artifacts/composer.lock
+          mkdir artifacts
+          cp composer.json artifacts
+          cp composer.lock artifacts
 
       - name: Create .env
         run: |
@@ -116,7 +111,7 @@ jobs:
       - name: Make new behat.yml
         run: |
           php .github/things/behat.php
-          cp behat.yml artifacts/behat.yml
+          cp behat.yml artifacts
           
       # - name: Start chromedriver
       #   run: |
