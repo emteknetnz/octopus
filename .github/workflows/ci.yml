@@ -206,7 +206,7 @@ jobs:
           # sudo chmod -R 1777 .
 
           sudo chmod -R 777 .
-          # cp .github/things/ModelAsController.php vendor/silverstripe/cms/code/Controllers/ModelAsController.php
+          cp .github/things/ModelAsController.php vendor/silverstripe/cms/code/Controllers/ModelAsController.php
 
           nohup sh -c "chromedriver --allowed-ips='' --port=9515 --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat octopus

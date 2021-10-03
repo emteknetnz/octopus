@@ -149,6 +149,12 @@ class ModelAsController extends Controller implements NestedController
             Translatable::enable_locale_filter();
         }
 
+$c = mysqli_connect('0.0.0.0', 'root', 'root', 'SS_mysite');
+$q = mysqli_query($c, 'select * from SiteTree;');
+while ($r = mysqli_fetch_assoc($q)) {
+    print_r($r);
+}
+
 //sboyd
         print_r([
             $tableName,
