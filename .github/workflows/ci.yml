@@ -89,6 +89,7 @@ jobs:
           composer require silverstripe/installer:^4 --no-update --prefer-dist
           composer require silverstripe/recipe-testing:^1 --no-update --prefer-dist
           composer update --prefer-dist --no-interaction --no-progress
+          ls
           cp composer.json artifacts/composer.json
           cp composer.lock artifacts/composer.lock
 
