@@ -127,8 +127,10 @@ jobs:
           # This script will create a 000-default.conf file with the pwd as the DocumentRoot
           php .github/things/apache2.php
           sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
+
           # enable mod_rewrite
           sudo a2enmod rewrite
+
           #
           # None of these adding to user group changes make any difference, even adding www-data to docker group
           # - curl http://localhost works
@@ -153,10 +155,15 @@ jobs:
           # newgrp www-data
           #sudo chown -R www-data:www-data .
           sudo systemctl restart apache2
+
           # Try doing bizarre stuff
           touch hosts
           echo '0.0.0.0 localhost' >> hosts
           sudo cp hosts /etc/hosts
+
+          # Confirm if it's permissions or not
+          sudo chmod -R 0777 .
+
           # Test that webserver is working
           curl http://localhost
 
