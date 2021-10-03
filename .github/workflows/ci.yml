@@ -56,8 +56,17 @@ jobs:
         run: |
           # sudo apt update
           sudo apt install -y apache2
-          hostname -I
-          curl -I host.docker.internal
+          pwd
+          sudo adduser $(whoami) www-data
+          sudo adduser $(whoami) root
+          sudo adduser root www-data
+          sudo chown -R www-data:www-data /etc/apache2/sites-available/
+          sudo chmod -R 777 /etc/apache2/sites-available/
+          sudo chown -R www-data:www-data /var/www/html/
+          sudo chmod -R 777 /var/www/html/
+          cp ../.github/things/docker_apache_default /etc/apache2/sites-enabled/000-default.conf
+          sudo systemctl restart apache2 
+          curl -I 127.0.0.1
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -87,7 +96,7 @@ jobs:
           echo 'SS_DATABASE_PASSWORD=root' >> .env
           echo 'SS_DATABASE_NAME=SS_mysite' >> .env
           echo 'SS_ENVIRONMENT_TYPE=dev' >> .env
-          echo 'SS_BASE_URL=http://host.docker.internal' >> .env
+          echo 'SS_BASE_URL=http://localhost' >> .env
 
       - name: Run dev/build flush=1
         run: |
