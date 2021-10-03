@@ -103,7 +103,7 @@ jobs:
           echo 'SS_DATABASE_PASSWORD=root' >> .env
           echo 'SS_DATABASE_NAME=SS_mysite' >> .env
           echo 'SS_ENVIRONMENT_TYPE=dev' >> .env
-          echo 'SS_BASE_URL=http://localhost' >> .env
+          echo 'SS_BASE_URL=http://localhost:8080' >> .env
 
       - name: dev/build flush=1
         run: |
@@ -125,10 +125,11 @@ jobs:
           # enable mod_rewrite
           sudo a2enmod rewrite
           #
-          # None of these adding to user group changes make any difference, even add www-data to docker group
+          # None of these adding to user group changes make any difference, even adding www-data to docker group
           # - curl http://localhost works
-          # - curl http://localhost/about-us does not
-          # - chrome cannot resolve http://localhost/
+          # - curl http://localhost/about-us works
+          # - curl -L http://localhost/admin - works - follows redirects
+          # - chrome cannot resolve http://localhost/ - screenshot says "The requested page could not be found"
           #
           # Files in the pwd with have the user:group runner:docker, so add www-data to the docker group (makes sense??)
           #sudo adduser www-data docker
@@ -161,7 +162,8 @@ jobs:
 
       - name: curl /admin
         run: |
-          curl http://localhost/admin
+          # -L means follow redirects
+          curl -L http://localhost/admin
 
       - name: behat
         run: |
