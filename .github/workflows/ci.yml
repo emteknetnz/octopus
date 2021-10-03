@@ -149,18 +149,18 @@ jobs:
           # able to create files such as artifacts
           # Was having issues adding the current 'runner' user to the www-data group - possibly need to log out
           # and log back in again for it to take effect, which isn't possible in this context
-          sudo chmod -R 0777 .
+          # sudo chmod -R 0777 .
 
           # Test that webserver is working
           curl http://localhost
 
-      - name: debug
-        run: |
-          rm .htaccess
-          cp .github/things/debug.php debug.php
-          sudo chmod -R 0777 .
-          ls -al
-          curl http://localhost/debug.php
+      # - name: debug
+      #   run: |
+      #     rm .htaccess
+      #     cp .github/things/debug.php debug.php
+      #     sudo chmod -R 0777 .
+      #     ls -al
+      #     curl http://localhost/debug.php
 
       - name: curl test
         run: |
@@ -184,8 +184,11 @@ jobs:
           # This script will update behat.yml to work with headless chrome
           php .github/things/behat.php
           cp behat.yml artifacts
+          sudo chown -R www-data:www-data .
+          sudo chown -R runner:docker artifacts
           nohup sh -c "chromedriver --allowed-ips='' --port=9515 --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat octopus
+          sudo chown -R runner:docker .
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
