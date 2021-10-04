@@ -39,8 +39,9 @@ jobs:
     name: PHP ${{ matrix.php }}${{ matrix.phpunit_test && ' - phpunit' || '' }}${{ matrix.behat_test && ' - behat' || '' }}
 
     steps:
-      # disabling this because ran into dependency issues trying to install libapache2-mod-php
-      # Should conditionally use this for non-behat jobs
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Install PHP
         uses: shivammathur/setup-php@v2
         if: ${{ matrix.behat_test != true }}
@@ -50,15 +51,10 @@ jobs:
           tools: composer:v2
           coverage: none
 
-      - name: Checkout code
-        uses: actions/checkout@v2
-        # with:
-        #   php-version: ${{ matrix.php }}
-
+      # For behat, install php manually
       # This is kind of slow at around 44 seconds, it's only because I was having
       # issues with libapache2-mod-php which is needed for behat
       # Ideally would use shivammathur/setup-php@v2 instead which is far faster
-      # could possibly just use this installation method conditional on it being a behat job
       - name: Install PHP - Behat
         if: ${{ matrix.behat_test == true }}
         run: |
@@ -74,7 +70,23 @@ jobs:
           # Test
           php -v
 
-      # This only needs to be done if not using shivammathur/setup-php@v2
+      - name: Configure apache
+        if: ${{ matrix.behat_test == true }}
+        run: |
+          # apache2 is installed and running by default in ubuntu
+          # update dir.conf to use index.php as the primary index doc
+          sudo cp .github/things/dir.conf /etc/apache2/mods-enabled/dir.conf
+          # this script will create a 000-default.conf file with the pwd as the DocumentRoot
+          # it will also create envvars which is used a bit later
+          php .github/things/apache2.php
+          sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
+          sudo a2enmod rewrite
+          # run apache as 'runner:docker' instead of 'www-data:www-data'
+          sudo cp envvars /etc/apache2/envvars
+          sudo chmod 644 /etc/apache2/envvars
+          sudo chown root:root /etc/apache2/envvars
+          sudo systemctl restart apache2
+
       - name: Install composer - Behat
         if: ${{ matrix.behat_test == true }}
         run: |
@@ -111,23 +123,6 @@ jobs:
         if: ${{ matrix.phpunit_test == true }}
         run: |
           vendor/bin/phpunit --verbose
-
-      - name: Configure apache
-        if: ${{ matrix.behat_test == true }}
-        run: |
-          # apache2 is installed and running by default in ubuntu
-          # update dir.conf to use index.php as the primary index doc
-          sudo cp .github/things/dir.conf /etc/apache2/mods-enabled/dir.conf
-          # this script will create a 000-default.conf file with the pwd as the DocumentRoot
-          # it will also create envvars which is used a bit later
-          php .github/things/apache2.php
-          sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
-          sudo a2enmod rewrite
-          # run apache as 'runner:docker' instead of 'www-data:www-data'
-          sudo cp envvars /etc/apache2/envvars
-          sudo chmod 644 /etc/apache2/envvars
-          sudo chown root:root /etc/apache2/envvars
-          sudo systemctl restart apache2
 
       - name: behat
         if: ${{ matrix.behat_test == true }}
