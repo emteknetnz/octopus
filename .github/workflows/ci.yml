@@ -194,6 +194,7 @@ jobs:
 
           sudo chmod -R 777 .
           cp .github/things/ModelAsController.php vendor/silverstripe/cms/code/Controllers/ModelAsController.php
+          cp .github/things/MySQLiConnector.php vendor/silverstripe/framework/src/ORM/Connect/MySQLiConnector.php
 
           nohup sh -c "chromedriver --allowed-ips='' --port=9515 --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat octopus
@@ -204,15 +205,16 @@ jobs:
           # reset everthing to runner:docker
           #sudo chown -R runner:docker .
 
-      - name: show logs
-        if: always()
-        run: |
-          ls -al /var/logs/apache2
-          echo "error.log"
-          cat /var/log/apache2/error.log
-          echo ""
-          echo "access.log"
-          cat /var/log/apache2/access.log
+      # ls: cannot access '/var/logs/apache2': No such file or directory
+      # - name: show logs
+      #   if: always()
+      #   run: |
+      #     ls -al /var/logs/apache2
+      #     echo "error.log"
+      #     cat /var/logs/apache2/error.log
+      #     echo ""
+      #     echo "access.log"
+      #     cat /var/logs/apache2/access.log
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2

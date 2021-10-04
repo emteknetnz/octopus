@@ -175,11 +175,14 @@ while ($r = mysqli_fetch_assoc($q)) {
     // print_r($r);
 }
 
+# finds nothing
 echo "1:\n";
 foreach (DB::query('select * from SiteTree') as $r) {
+    echo "1..\n";
     print_r(is_array($r) ? $r : $r->toArray());
 }
 
+# finds nothing
 echo "2:\n";
 foreach (SiteTree::get() as $r) {
     echo $r->Title . "\n";
