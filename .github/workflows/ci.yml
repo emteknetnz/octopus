@@ -56,7 +56,7 @@ jobs:
     # - [w] TRAVIS_BRANCH / COMPOSER_ROOT_VERSION - github.base_ref (pull-request only)
     # - [w] apt install tidy
 
-    name: PHP ${{ matrix.php }}${{ matrix.phpunit_test && ' - phpunit' || '' }}${{ matrix.behat_test && ' - behat' || '' }}${{ matrix.npm_test && ' - npm' || '' }}${{ matrix.phpunit_coverage_test && ' - phpunit_coverage' || '' }}
+    name: PHP ${{ matrix.php }}${{ matrix.phpunit_test && ' - phpunit' || '' }}${{ matrix.behat_test && ' - behat' || '' }}${{ matrix.npm_test && ' - npm' || '' }}${{ matrix.phpunit_coverage_test && ' - phpunit_coverage' || '' }}${{ matrix.phpcs_test && ' - phpcs_test' || '' }}${{ matrix.phpstan_test && ' - phpstan_test' || '' }}${{ matrix.cow_test && ' - cow_test' || '' }}
 
     steps:
       - name: Checkout code
@@ -129,18 +129,11 @@ jobs:
 
       - name: Composer root version
         run: |
-          # base_ref is only available on pull-requests and is the target branch
-          # ref is used for regular branch builds such as crons
-          # single quotes are not allowed in branch names, so no need to escape
-          TRAVIS_BRANCH=$(php -r "\$base_ref='${{ github.github.base_ref }}';\$ref='${{ github.github.ref }}';print_r([\$base_ref,\$ref]);echo \$base_ref ?: \$ref;")
-          if [[ "$TRAVIS_BRANCH" =~ ^[1-9]$ ]] || [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+$ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}.x-dev"; elif [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+\.[0-9]+ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}"; else export COMPOSER_ROOT_VERSION="dev-${TRAVIS_BRANCH}"; fi
+          # github.base_ref is only available on pull-requests and is the target branch
+          # github.ref is used for regular branch builds such as crons
+          BRANCH=$(php -r "echo '${{ github.base_ref }}' ?: '${{ github.ref }}';")
+          if [[ "$BRANCH" =~ ^[1-9]$ ]] || [[ "$BRANCH" =~ ^[1-9]\.[0-9]+$ ]]; then export COMPOSER_ROOT_VERSION="${BRANCH}.x-dev"; elif [[ "$BRANCH" =~ ^[1-9]\.[0-9]+\.[0-9]+ ]]; then export COMPOSER_ROOT_VERSION="${BRANCH}"; else export COMPOSER_ROOT_VERSION="dev-${BRANCH}"; fi
           echo "COMPOSER_ROOT_VERSION is $COMPOSER_ROOT_VERSION"
-
-      # - echo "$COMPOSER_ROOT_VERSION"
-
-      # COMPORER_ROOT_VERSION - need to get access to the current branch in github actions
-      #  - if [[ "$TRAVIS_BRANCH" =~ ^[1-9]$ ]] || [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+$ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}.x-dev"; elif [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+\.[0-9]+ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}"; else export COMPOSER_ROOT_VERSION="dev-${TRAVIS_BRANCH}"; fi
-      # - echo "$COMPOSER_ROOT_VERSION"
 
       - name: Composer - cow test
         if: ${{ matrix.cow_test == true }}
@@ -177,7 +170,7 @@ jobs:
       - name: cow test 
         if: ${{ matrix.cow_test == true }}
         run: |
-          if [ ! -f .cow.json ]; then echo "Missing .cow.json" 1>&2; fi
+          if [ ! -f .cow.json ]; then echo "Missing .cow.json" && exit 1; fi
           vendor/bin/cow schema:validate
 
       - name: npm test
@@ -185,12 +178,13 @@ jobs:
         run: |
           wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh
           php -r "if (hash_file('sha384', 'install.sh') === 'dd4b116a7452fc3bb8c0e410ceac27e19b0ba0f900fe2f91818a95c12e92130fdfb8170fec170b9fb006d316f6386f2b') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('install.sh'); } echo PHP_EOL;"
-          if [ ! -f install.sh ]; then echo "Cannot install nvm" 1>&2; fi
+          if [ ! -f install.sh ]; then echo "Cannot install nvm" && exit 1; fi
           . install.sh
           rm install.sh
           export NVM_DIR="$HOME/.nvm"
           # this loads nvm into the current terminal
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          if [ ! -f .nvmrc ]; then echo "Missing .nvmrc" && exit 1; fi
           nvm install
           nvm use
           rm -rf client/dist
@@ -210,13 +204,13 @@ jobs:
       - name: phpcs_test
         if: ${{ matrix.phpcs_test == true }}
         run: |
-          if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" 1>&2; fi
+          if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" && exit 1; fi
           vendor/bin/phpcs
 
       - name: phpstan test
         if: ${{ matrix.phpstan_test == true }}
         run: |
-          if [ ! -f phpstan.neon.dist ]; then echo "Missing phpstan.neon.dist" 1>&2; fi
+          if [ ! -f phpstan.neon.dist ]; then echo "Missing phpstan.neon.dist" && exit 1; fi
           vendor/bin/phpstan analyse
 
       - name: phpunit coverage test
