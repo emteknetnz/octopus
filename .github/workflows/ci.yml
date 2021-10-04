@@ -132,7 +132,7 @@ jobs:
           # base_ref is only available on pull-requests and is the target branch
           # ref is used for regular branch builds such as crons
           # single quotes are not allowed in branch names, so no need to escape
-          TRAVIS_BRANCH=$(php -r "$base_ref='${{ github.github.base_ref }}';$ref='${{ github.github.ref }}';print_r([$base_ref,$ref]);echo $base_ref ?: $ref;")
+          TRAVIS_BRANCH=$(php -r "\$base_ref='${{ github.github.base_ref }}';\$ref='${{ github.github.ref }}';print_r([\$base_ref,\$ref]);echo \$base_ref ?: \$ref;")
           if [[ "$TRAVIS_BRANCH" =~ ^[1-9]$ ]] || [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+$ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}.x-dev"; elif [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+\.[0-9]+ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}"; else export COMPOSER_ROOT_VERSION="dev-${TRAVIS_BRANCH}"; fi
           echo "COMPOSER_ROOT_VERSION is $COMPOSER_ROOT_VERSION"
 
