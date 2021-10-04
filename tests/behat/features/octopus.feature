@@ -11,7 +11,10 @@ Feature: Test it works
     #Given I dump the rendered HTML after every step
 
   Scenario: Test it works
-    # Given I am logged in with "ADMIN" permissions
+    Given I am logged in with "ADMIN" permissions
+    And I go to "/admin/pages"
+    And I follow "My page"
+    And I press the "Publish" button"
     When I go to "/my-page"
     # Trigger screenshot
     Then I press the "Missing" button

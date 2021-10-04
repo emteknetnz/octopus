@@ -153,13 +153,13 @@ class ModelAsController extends Controller implements NestedController
 
 
 //sboyd
-        print_r([
-            Environment::getEnv('SS_DATABASE_SERVER'),
-            $tableName,
-            $conditions,
-            SiteTree::get()->count(),
-            SiteTree::get()->first()->Title ?? 'No first()'
-        ]);
+        // print_r([
+        //     Environment::getEnv('SS_DATABASE_SERVER'),
+        //     $tableName,
+        //     $conditions,
+        //     SiteTree::get()->count(),
+        //     SiteTree::get()->first()->Title ?? 'No first()'
+        // ]);
 
 # this is finding results
 $c = mysqli_connect('0.0.0.0', 'root', 'root', 'SS_mysite');
@@ -176,17 +176,17 @@ while ($r = mysqli_fetch_assoc($q)) {
 }
 
 # finds nothing
-echo "1:\n";
-foreach (DB::query('select * from SiteTree') as $r) {
-    echo "1..\n";
-    print_r(is_array($r) ? $r : $r->toArray());
-}
+// echo "1:\n";
+// foreach (DB::query('select * from SiteTree') as $r) {
+//     echo "1..\n";
+//     print_r(is_array($r) ? $r : $r->toArray());
+// }
 
-# finds nothing
-echo "2:\n";
-foreach (SiteTree::get() as $r) {
-    echo $r->Title . "\n";
-}
+// # finds nothing
+// echo "2:\n";
+// foreach (SiteTree::get() as $r) {
+//     echo $r->Title . "\n";
+// }
 
         if (!$sitetree) {
             $this->httpError(404, 'The requested page could not be found.');
