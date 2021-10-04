@@ -35,7 +35,8 @@ jobs:
           #   behat_test: true
           - php: '7.4'
             npm_test: true
-          - php: '7.4'
+          # phpunit_coverage_test limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
+          - php: '7.3'
             phpunit_coverage_test: true
           # - php: '7.4'
           #   phpunit_test: true
@@ -152,6 +153,8 @@ jobs:
           if [ -f install.sh ]; then
             . install.sh
             rm install.sh
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             which nvm
             rm -rf client/dist
             nvm install
@@ -176,6 +179,7 @@ jobs:
       - name: phpunit_coverage_test
         if: ${{ matrix.phpunit_coverage_test == true }}
         run: |
+          memlimit='8192M'
           curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import
           curl -Os https://uploader.codecov.io/latest/codecov-linux
           curl -Os https://uploader.codecov.io/latest/codecov-linux.SHA256SUM
