@@ -216,7 +216,7 @@ jobs:
       - name: phpstan test
           if: ${{ matrix.phpstan_test == true }}
           run: |
-            - if [ ! -f phpstan.neon.dist ]; then echo "Missing phpstan.neon.dist" 1>&2; fi
+            if [ ! -f phpstan.neon.dist ]; then echo "Missing phpstan.neon.dist" 1>&2; fi
             vendor/bin/phpstan analyse
 
       - name: phpunit coverage test
