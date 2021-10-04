@@ -32,27 +32,30 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # behat test works, it's slow as expected which is why it's commented out
           # - php: '7.3'
           #   behat_test: true
-          - php: '7.4'
-            npm_test: true
-          # phpunit_coverage_test limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
+          # npm test probably works, though needs to be tested on a proper repo
           # - php: '7.4'
-          #   phpunit_test: true
+          #   npm_test: true
+          - php: '7.4'
+            phpunit_test: true
+          # phpunit coverage test works
+          # phpunit_coverage_test limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
           - php: '7.3'
             phpunit_coverage_test: true
+          # phpcs works
           - php: '7.4'
             phpcs_test: true
+          # phpstan probably works though needs to be tested on something that actually uses it
           # - php: '7.4'
           #   phpstan_test: true
-          # - php: '7.4'
-          #   cow_test: true
+          # cow probably works though needs to be tested on something that uses it
+          - php: '7.4'
+            cow_test: true
 
     # TODO:
-    # - [w] PHPSTAN_TEST
-    # - [w] COW_TEST
-    # - [ ] REQUIRE_GRAPHQL, REQUIRE_EXTRA, etc
-    # - [w] TRAVIS_BRANCH / COMPOSER_ROOT_VERSION - github.base_ref (pull-request only)
+    # - [ ] composer REQUIRE_GRAPHQL, REQUIRE_EXTRA, etc
 
     name: PHP ${{ matrix.php }}${{ matrix.phpunit_test && ' - phpunit' || '' }}${{ matrix.behat_test && ' - behat' || '' }}${{ matrix.npm_test && ' - npm' || '' }}${{ matrix.phpunit_coverage_test && ' - phpunit_coverage' || '' }}${{ matrix.phpcs_test && ' - phpcs_test' || '' }}${{ matrix.phpstan_test && ' - phpstan' || '' }}${{ matrix.cow_test && ' - cow' || '' }}
 
@@ -139,6 +142,11 @@ jobs:
         if: ${{ matrix.cow_test == true }}
         run: |
           composer require --no-update silverstripe/cow dev-master --no-update --prefer-dist
+
+      - name: Composer - test
+        run: |
+          echo ${{ matrix.cow_test }}
+          if [ ${{ matrix.cow_test }} ]; then echo 'A'; else echo 'B'; fi
 
       - name: Composer
         run: |
