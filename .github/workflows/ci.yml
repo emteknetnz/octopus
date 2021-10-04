@@ -200,12 +200,14 @@ jobs:
           git diff --name-status --relative=client
           yarn run test
           yarn run lint
+          echo "Passed" && exit 0
 
       - name: phpcs_test
         if: ${{ matrix.phpcs_test == true }}
         run: |
           if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" && exit 1; fi
           vendor/bin/phpcs
+          echo "Passed" && exit 0
 
       - name: phpstan test
         if: ${{ matrix.phpstan_test == true }}
