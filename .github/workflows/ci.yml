@@ -148,7 +148,7 @@ jobs:
         if: ${{ matrix.npm_test == true }}
         run: |
           wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh
-          php -r "if (hash_file('sha384', 'install.sh') === 'dd4b116a7452fc3bb8c0e410ceac27e19b0ba0f900fe2f91818a95c12e92130fdfb8170fec170b9fb006d316f6386f2b')) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('install.sh'); } echo PHP_EOL;"
+          php -r "if (hash_file('sha384', 'install.sh') === 'dd4b116a7452fc3bb8c0e410ceac27e19b0ba0f900fe2f91818a95c12e92130fdfb8170fec170b9fb006d316f6386f2b') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('install.sh'); } echo PHP_EOL;"
           if [ -f install.sh ]; then
             . install.sh
             rm install.sh
@@ -169,7 +169,8 @@ jobs:
             yarn run test
             yarn run lint
           else
-            exit 1
+            # print to stderror
+            >&2 echo "Cannot install nvm"
           fi;
 
       - name: phpunit_coverage_test
