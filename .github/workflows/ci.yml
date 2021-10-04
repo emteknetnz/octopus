@@ -32,21 +32,18 @@ jobs:
       matrix:
         include:
           - php: '7.3'
-            phpunit: false
-            behat: true
+            behat_test: true
           - php: '7.4'
-            phpunit: true
-            behat: false
+            phpunit_test: true
 
-    name: PHP ${{ matrix.php }} - phpunit:${{ matrix.phpunit }} -  phpunit:${{ matrix.behat }}
-    #name: PHP ${{ matrix.php }}
+    name: PHP ${{ matrix.php }}${{ matrix.phpunit_test && ' - phpnit' || '' }}${{ matrix.behat_test && ' - behat' || '' }}
 
     steps:
       # disabling this because ran into dependency issues trying to install libapache2-mod-php
       # Should conditionally use this for non-behat jobs
       - name: Install PHP
         uses: shivammathur/setup-php@v2
-        if: ${{ matrix.behat == false }}
+        if: ${{ matrix.behat != true }}
         with:
           php-version: ${{ matrix.php }}
           extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, xdebug, zip
