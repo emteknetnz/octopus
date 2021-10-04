@@ -31,21 +31,27 @@ jobs:
       # fail-fast: true
       matrix:
         include:
+          - php: '7.3'
+            phpunit: false
+            behat: true
           - php: '7.4'
+            phpunit: true
+            behat: false
 
-    # name: PHP ${{ matrix.php }} - ${{ matrix.stability }}
-    name: PHP ${{ matrix.php }}
+    name: PHP ${{ matrix.php }} - phpunit:${{ matrix.phpunit }} -  phpunit:${{ matrix.behat }}
+    #name: PHP ${{ matrix.php }}
 
     steps:
       # disabling this because ran into dependency issues trying to install libapache2-mod-php
       # Should conditionally use this for non-behat jobs
-      # - name: Setup PHP
-      #   uses: shivammathur/setup-php@v2
-      #   with:
-      #     php-version: ${{ matrix.php }}
-      #     extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, xdebug, zip
-      #     tools: composer:v2
-      #     coverage: none
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        if: ${{ matrix.behat == false }}
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, xdebug, zip
+          tools: composer:v2
+          coverage: none
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -56,7 +62,8 @@ jobs:
       # issues with libapache2-mod-php which is needed for behat
       # Ideally would use shivammathur/setup-php@v2 instead which is far faster
       # could possibly just use this installation method conditional on it being a behat job
-      - name: Install PHP
+      - name: Install PHP - Behat
+        if: ${{ matrix.behat == true }}
         run: |
           # Make all php versions other than the current main version available
           sudo apt update && sudo sudo apt install -y software-properties-common
@@ -71,7 +78,8 @@ jobs:
           php -v
 
       # This only needs to be done if not using shivammathur/setup-php@v2
-      - name: Install composer
+      - name: Install composer - Behat
+        if: ${{ matrix.behat == true }}
         run: |
           php -r "copy('https://composer.github.io/installer.sig', 'installer.sig');"
           php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
@@ -103,14 +111,15 @@ jobs:
           vendor/bin/sake dev/build flush=1
 
       - name: phpunit
+        if: ${{ matrix.phpunit == true }}
         run: |
           vendor/bin/phpunit --verbose
 
-      # this should only be done for behat
       - name: Configure apache
+        if: ${{ matrix.behat == true }}
         run: |
           # apache2 is installed and running by default in ubuntu
-          # Update dir.conf to use index.php as the primary index doc
+          # update dir.conf to use index.php as the primary index doc
           sudo cp .github/things/dir.conf /etc/apache2/mods-enabled/dir.conf
           # this script will create a 000-default.conf file with the pwd as the DocumentRoot
           # it will also create envvars which is used a bit later
@@ -124,6 +133,7 @@ jobs:
           sudo systemctl restart apache2
 
       - name: behat
+        if: ${{ matrix.behat == true }}
         run: |
           # this script will update behat.yml to work with headless chrome
           php .github/things/behat.php

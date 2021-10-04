@@ -16,8 +16,6 @@ Feature: Test it works
     And I follow "My page"
     And I press the "Publish" button
     When I go to "/my-page"
+    Then I should see "My page"
     # Trigger screenshot
-    Then I press the "Missing" button
-    When I go to "/admin/pages"
-    # Uncomment to trigger screenshot, will fail in ci
-    Then I press the "Missing" button
+    # Then I press the "Missing" button
