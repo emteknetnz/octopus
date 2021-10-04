@@ -150,14 +150,14 @@ jobs:
           # restart apache
           sudo systemctl restart apache2
 
-      - name: debug
-        run: |
-          mv .htaccess .xhtaccess
-          cp .github/things/debug.php debug.php
-          sudo chmod -R 0777 debug.php
-          ls -al
-          curl http://localhost/debug.php
-          mv .xhtaccess .htaccess
+      # - name: debug
+      #   run: |
+      #     mv .htaccess .xhtaccess
+      #     cp .github/things/debug.php debug.php
+      #     sudo chmod -R 0777 debug.php
+      #     ls -al
+      #     curl http://localhost/debug.php
+      #     mv .xhtaccess .htaccess
 
       - name: curl test
         run: |
@@ -192,9 +192,9 @@ jobs:
           #sudo adduser www-data docker
           # sudo chmod -R 1777 .
 
-          sudo chmod -R 777 .
-          cp .github/things/ModelAsController.php vendor/silverstripe/cms/code/Controllers/ModelAsController.php
-          cp .github/things/MySQLiConnector.php vendor/silverstripe/framework/src/ORM/Connect/MySQLiConnector.php
+          #sudo chmod -R 777 .
+          #cp .github/things/ModelAsController.php vendor/silverstripe/cms/code/Controllers/ModelAsController.php
+          #cp .github/things/MySQLiConnector.php vendor/silverstripe/framework/src/ORM/Connect/MySQLiConnector.php
 
           nohup sh -c "chromedriver --allowed-ips='' --port=9515 --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat octopus
