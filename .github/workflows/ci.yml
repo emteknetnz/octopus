@@ -157,10 +157,7 @@ jobs:
             export NVM_DIR="$HOME/.nvm"
             # this loads nvm into the current terminal
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            echo "abc"
-            which nvm
             rm -rf client/dist
-            echo "def"
             nvm install
             nvm use
             npm install -g yarn
