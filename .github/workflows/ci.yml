@@ -37,16 +37,16 @@ jobs:
           - php: '7.4'
             npm_test: true
           # phpunit_coverage_test limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
-          - php: '7.4'
-            phpunit_test: true
+          # - php: '7.4'
+          #   phpunit_test: true
           - php: '7.3'
             phpunit_coverage_test: true
           - php: '7.4'
             phpcs_test: true
-          - php: '7.4'
-            phpstan_test: true
-          - php: '7.4'
-            cow_test: true
+          # - php: '7.4'
+          #   phpstan_test: true
+          # - php: '7.4'
+          #   cow_test: true
 
     # TODO:
     # - [w] PHPCS_TEST
@@ -56,7 +56,7 @@ jobs:
     # - [w] TRAVIS_BRANCH / COMPOSER_ROOT_VERSION - github.base_ref (pull-request only)
     # - [w] apt install tidy
 
-    name: PHP ${{ matrix.php }}${{ matrix.phpunit_test && ' - phpunit' || '' }}${{ matrix.behat_test && ' - behat' || '' }}${{ matrix.npm_test && ' - npm' || '' }}${{ matrix.phpunit_coverage_test && ' - phpunit_coverage' || '' }}${{ matrix.phpcs_test && ' - phpcs_test' || '' }}${{ matrix.phpstan_test && ' - phpstan_test' || '' }}${{ matrix.cow_test && ' - cow_test' || '' }}
+    name: PHP ${{ matrix.php }}${{ matrix.phpunit_test && ' - phpunit' || '' }}${{ matrix.behat_test && ' - behat' || '' }}${{ matrix.npm_test && ' - npm' || '' }}${{ matrix.phpunit_coverage_test && ' - phpunit_coverage' || '' }}${{ matrix.phpcs_test && ' - phpcs_test' || '' }}${{ matrix.phpstan_test && ' - phpstan' || '' }}${{ matrix.cow_test && ' - cow' || '' }}
 
     steps:
       - name: Checkout code
@@ -192,7 +192,7 @@ jobs:
           yarn install --network-concurrency 1
           if [ -d vendor/silverstripe/admin ]; then
             cd vendor/silverstripe/admin
-            yarn install --network-concurrency 1; fi
+            yarn install --network-concurrency 1
             cd ../../..
           fi
           yarn run build
