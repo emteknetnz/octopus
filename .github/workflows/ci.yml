@@ -147,6 +147,12 @@ jobs:
       - name: npm
         if: ${{ matrix.npm_test == true }}
         run: |
+          wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh
+          php -r "if (hash_file('sha384', 'install.sh') === 'dd4b116a7452fc3bb8c0e410ceac27e19b0ba0f900fe2f91818a95c12e92130fdfb8170fec170b9fb006d316f6386f2b')) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('install.sh'); } echo PHP_EOL;"
+          if [ -f install.sh ]; then
+            . install.sh
+            rm install.sh
+            which nvm
             rm -rf client/dist
             nvm install
             nvm use
@@ -162,21 +168,24 @@ jobs:
             git diff --name-status --relative=client
             yarn run test
             yarn run lint
+          else
+            exit 1
+          fi;
 
       - name: phpunit_coverage_test
         if: ${{ matrix.phpunit_coverage_test == true }}
         run: |
-            curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import
-            curl -Os https://uploader.codecov.io/latest/codecov-linux
-            curl -Os https://uploader.codecov.io/latest/codecov-linux.SHA256SUM
-            curl -Os https://uploader.codecov.io/latest/codecov-linux.SHA256SUM.sig
-            gpg --verify codecov-linux.SHA256SUM.sig codecov-linux.SHA256SUM
-            shasum -a 256 -c codecov-linux.SHA256SUM
-            chmod +x codecov-linux
-            if [ "$PHPUNIT_COVERAGE_SUITE" == "" ]; then phpdbg -qrr vendor/bin/phpunit --coverage-clover=coverage.xml; fi
-            # if [ "$PHPUNIT_COVERAGE_SUITE" != "" ]; then phpdbg -qrr vendor/bin/phpunit --testsuite $PHPUNIT_COVERAGE_SUITE --coverage-clover=coverage.xml; fi
-            # ./codecov-linux -f coverage.xml;
-            cat coverage.xml
+          curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import
+          curl -Os https://uploader.codecov.io/latest/codecov-linux
+          curl -Os https://uploader.codecov.io/latest/codecov-linux.SHA256SUM
+          curl -Os https://uploader.codecov.io/latest/codecov-linux.SHA256SUM.sig
+          gpg --verify codecov-linux.SHA256SUM.sig codecov-linux.SHA256SUM
+          shasum -a 256 -c codecov-linux.SHA256SUM
+          chmod +x codecov-linux
+          if [ "$PHPUNIT_COVERAGE_SUITE" == "" ]; then phpdbg -qrr vendor/bin/phpunit --coverage-clover=coverage.xml; fi
+          # if [ "$PHPUNIT_COVERAGE_SUITE" != "" ]; then phpdbg -qrr vendor/bin/phpunit --testsuite $PHPUNIT_COVERAGE_SUITE --coverage-clover=coverage.xml; fi
+          # ./codecov-linux -f coverage.xml;
+          cat coverage.xml
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
