@@ -37,15 +37,24 @@ jobs:
           - php: '7.4'
             npm_test: true
           # phpunit_coverage_test limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
+          - php: '7.4'
+            phpunit_test: true
           - php: '7.3'
             phpunit_coverage_test: true
-          # - php: '7.4'
-          #   phpunit_test: true
+          - php: '7.4'
+            phpcs_test: true
+          - php: '7.4'
+            phpstan_test: true
+          - php: '7.4'
+            cow_test: true
 
     # TODO:
-    # - PHPCS_TEST
-    # - PHPSTAN_TEST
-    # - COW_TEST
+    # - [w] PHPCS_TEST
+    # - [w] PHPSTAN_TEST
+    # - [w] COW_TEST
+    # - [ ] REQUIRE_GRAPHQL, REQUIRE_EXTRA, etc
+    # - [w] TRAVIS_BRANCH / COMPOSER_ROOT_VERSION - github.base_ref (pull-request only)
+    # - [w] apt install tidy
 
     name: PHP ${{ matrix.php }}${{ matrix.phpunit_test && ' - phpunit' || '' }}${{ matrix.behat_test && ' - behat' || '' }}${{ matrix.npm_test && ' - npm' || '' }}${{ matrix.phpunit_coverage_test && ' - phpunit_coverage' || '' }}
 
@@ -61,7 +70,7 @@ jobs:
           extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, zip
           tools: composer:v2
 
-      - name: Install PHP - phpunit_coverage
+      - name: Install PHP - phpunit coverage test
         uses: shivammathur/setup-php@v2
         if: ${{ matrix.phpunit_coverage_test == true }}
         with:
@@ -73,7 +82,7 @@ jobs:
       # For behat, install php manually
       # This is kind of slow at around 44 seconds, it's only used because there are
       # issues apt installing libapache2-mod-php which is needed for behat
-      - name: Install PHP - Behat
+      - name: Install PHP - behat test
         if: ${{ matrix.behat_test == true }}
         run: |
           # Make all php versions other than the current main version available
@@ -81,7 +90,7 @@ jobs:
           sudo add-apt-repository -y ppa:ondrej/php
           sudo add-apt-repository -y ppa:ondrej/apache2
           sudo apt update
-          sudo apt install libapache2-mod-php${{ matrix.php }} php${{ matrix.php }} php${{ matrix.php }}-cli php${{ matrix.php }}-curl  php${{ matrix.php }}-dom php${{ matrix.php }}-gd php${{ matrix.php }}-intl php${{ matrix.php }}-json php${{ matrix.php }}-ldap php${{ matrix.php }}-mbstring php${{ matrix.php }}-mysql php${{ matrix.php }}-tidy php${{ matrix.php }}-xdebug php${{ matrix.php }}-zip
+          sudo apt install libapache2-mod-php${{ matrix.php }} php${{ matrix.php }} php${{ matrix.php }}-cli php${{ matrix.php }}-curl  php${{ matrix.php }}-dom php${{ matrix.php }}-gd php${{ matrix.php }}-intl php${{ matrix.php }}-json php${{ matrix.php }}-ldap php${{ matrix.php }}-mbstring php${{ matrix.php }}-mysql php${{ matrix.php }}-tidy php${{ matrix.php }}-xdebug php${{ matrix.php }}-zip tidy
           # This this verison of PHP instead of the default ubuntu php8.0 install
           sudo rm /etc/alternatives/php
           sudo ln -s /usr/bin/php${{ matrix.php }} /etc/alternatives/php
@@ -91,7 +100,7 @@ jobs:
           sudo sh -c "echo 'memory_limit = 8196M' >> /etc/php/${{ matrix.php }}/cli/php.ini"
           if [ -f /etc/php/${{ matrix.php }}/apache2/php.ini ]; then
             sudo sh -c "echo 'memory_limit = 8196M' >> /etc/php/${{ matrix.php }}/apache2/php.ini"
-          fi;
+          fi
 
       - name: Configure apache
         if: ${{ matrix.behat_test == true }}
@@ -108,7 +117,7 @@ jobs:
           sudo sh -c "echo 'export APACHE_RUN_GROUP=docker' >> /etc/apache2/envvars"
           sudo systemctl restart apache2
 
-      - name: Install composer - Behat
+      - name: Install composer - behat test
         if: ${{ matrix.behat_test == true }}
         run: |
           php -r "copy('https://composer.github.io/installer.sig', 'installer.sig');"
@@ -118,9 +127,25 @@ jobs:
           rm installer.sig
           sudo mv composer.phar /usr/local/bin/composer
 
+      - name: Composer root version
+        run: |
+          # base_ref is only available on pull-requests and is the target branch
+          # ref is used for regular branch builds such as crons
+          # single quotes are not allowed in branch names, so no need to escape
+          TRAVIS_BRANCH=$(php -r "$base_ref='${{ github.github.base_ref }}';$ref='${{ github.github.ref }}';print_r([$base_ref,$ref]);echo $base_ref ?: $ref;")
+          if [[ "$TRAVIS_BRANCH" =~ ^[1-9]$ ]] || [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+$ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}.x-dev"; elif [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+\.[0-9]+ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}"; else export COMPOSER_ROOT_VERSION="dev-${TRAVIS_BRANCH}"; fi
+          echo "COMPOSER_ROOT_VERSION is $COMPOSER_ROOT_VERSION"
+
+      # - echo "$COMPOSER_ROOT_VERSION"
+
       # COMPORER_ROOT_VERSION - need to get access to the current branch in github actions
       #  - if [[ "$TRAVIS_BRANCH" =~ ^[1-9]$ ]] || [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+$ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}.x-dev"; elif [[ "$TRAVIS_BRANCH" =~ ^[1-9]\.[0-9]+\.[0-9]+ ]]; then export COMPOSER_ROOT_VERSION="${TRAVIS_BRANCH}"; else export COMPOSER_ROOT_VERSION="dev-${TRAVIS_BRANCH}"; fi
       # - echo "$COMPOSER_ROOT_VERSION"
+
+      - name: Composer - cow test
+        if: ${{ matrix.cow_test == true }}
+        run: |
+          composer require --no-update silverstripe/cow dev-master --no-update --prefer-dist
 
       - name: Composer
         run: |
@@ -136,12 +161,12 @@ jobs:
           cp .github/things/.env .env
           vendor/bin/sake dev/build flush=1
 
-      - name: phpunit
+      - name: phpunit test
         if: ${{ matrix.phpunit_test == true }}
         run: |
           vendor/bin/phpunit --verbose
 
-      - name: behat
+      - name: behat test
         if: ${{ matrix.behat_test == true }}
         run: |
           # this script will update behat.yml to work with headless chrome
@@ -149,38 +174,52 @@ jobs:
           nohup sh -c "chromedriver --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat octopus
 
-      - name: npm
+      - name: cow test 
+        if: ${{ matrix.cow_test == true }}
+        run: |
+          if [ ! -f .cow.json ]; then echo "Missing .cow.json" 1>&2; fi
+          vendor/bin/cow schema:validate
+
+      - name: npm test
         if: ${{ matrix.npm_test == true }}
         run: |
           wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh
           php -r "if (hash_file('sha384', 'install.sh') === 'dd4b116a7452fc3bb8c0e410ceac27e19b0ba0f900fe2f91818a95c12e92130fdfb8170fec170b9fb006d316f6386f2b') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('install.sh'); } echo PHP_EOL;"
-          if [ -f install.sh ]; then
-            . install.sh
-            rm install.sh
-            export NVM_DIR="$HOME/.nvm"
-            # this loads nvm into the current terminal
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install
-            nvm use
-            rm -rf client/dist
-            npm install -g yarn
-            yarn install --network-concurrency 1
-            if [ -d vendor/silverstripe/admin ]; then
-              cd vendor/silverstripe/admin
-              yarn install --network-concurrency 1; fi
-              cd ../../..
-            fi
-            yarn run build
-            git diff-files --quiet -w --relative=client
-            git diff --name-status --relative=client
-            yarn run test
-            yarn run lint
-          else
-            # print to stderror
-            >&2 echo "Cannot install nvm"
-          fi;
+          if [ ! -f install.sh ]; then echo "Cannot install nvm" 1>&2; fi
+          . install.sh
+          rm install.sh
+          export NVM_DIR="$HOME/.nvm"
+          # this loads nvm into the current terminal
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          nvm install
+          nvm use
+          rm -rf client/dist
+          npm install -g yarn
+          yarn install --network-concurrency 1
+          if [ -d vendor/silverstripe/admin ]; then
+            cd vendor/silverstripe/admin
+            yarn install --network-concurrency 1; fi
+            cd ../../..
+          fi
+          yarn run build
+          git diff-files --quiet -w --relative=client
+          git diff --name-status --relative=client
+          yarn run test
+          yarn run lint
 
-      - name: phpunit_coverage_test
+      - name: phpcs_test
+          if: ${{ matrix.phpcs_test == true }}
+          run: |
+            if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" 1>&2; fi
+            vendor/bin/phpcs
+
+      - name: phpstan test
+          if: ${{ matrix.phpstan_test == true }}
+          run: |
+            - if [ ! -f phpstan.neon.dist ]; then echo "Missing phpstan.neon.dist" 1>&2; fi
+            vendor/bin/phpstan analyse
+
+      - name: phpunit coverage test
         if: ${{ matrix.phpunit_coverage_test == true }}
         run: |
           curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import
