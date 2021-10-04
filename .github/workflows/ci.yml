@@ -32,9 +32,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # behat test works, it's slow as expected which is why it's commented out
-          # - php: '7.3'
-          #   behat_test: true
+          # behat test works
+          - php: '7.3'
+            behat_test: true
           # npm test probably works, though needs to be tested on a proper repo
           # - php: '7.4'
           #   npm_test: true
@@ -51,8 +51,8 @@ jobs:
           # - php: '7.4'
           #   phpstan_test: true
           # cow probably works though needs to be tested on something that uses it
-          - php: '7.4'
-            cow_test: true
+          # - php: '7.4'
+          #   cow_test: true
 
     # TODO:
     # - [ ] composer REQUIRE_GRAPHQL, REQUIRE_EXTRA, etc
@@ -130,28 +130,18 @@ jobs:
           rm installer.sig
           sudo mv composer.phar /usr/local/bin/composer
 
-      - name: Composer - root version
+      - name: Composer
         run: |
           # github.base_ref is only available on pull-requests and is the target branch
           # github.ref is used for regular branch builds such as crons
           BRANCH=$(php -r "echo preg_replace('#^.+/#', '', '${{ github.base_ref }}'?:'${{ github.ref }}');")
           if [[ "$BRANCH" =~ ^[1-9]$ ]] || [[ "$BRANCH" =~ ^[1-9]\.[0-9]+$ ]]; then export COMPOSER_ROOT_VERSION="${BRANCH}.x-dev"; elif [[ "$BRANCH" =~ ^[1-9]\.[0-9]+\.[0-9]+ ]]; then export COMPOSER_ROOT_VERSION="${BRANCH}"; else export COMPOSER_ROOT_VERSION="dev-${BRANCH}"; fi
           echo "COMPOSER_ROOT_VERSION is $COMPOSER_ROOT_VERSION"
-
-      - name: Composer - cow test requirements
-        if: ${{ matrix.cow_test == true }}
-        run: |
-          composer require --no-update silverstripe/cow dev-master --no-update --prefer-dist
-
-      - name: Composer - test
-        run: |
-          echo ${{ matrix.cow_test }}
-          if [ ${{ matrix.cow_test }} ]; then echo 'A'; else echo 'B'; fi
-
-      - name: Composer
-        run: |
           composer require silverstripe/installer:^4 --no-update --prefer-dist
           composer require silverstripe/recipe-testing:^1 --no-update --prefer-dist
+          if [ ${{ matrix.cow_test }} ]; then
+            composer require --no-update silverstripe/cow dev-master --no-update --prefer-dist
+          fi
           composer update --prefer-dist --no-interaction --no-progress
           mkdir artifacts
           cp composer.json artifacts
