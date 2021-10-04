@@ -223,10 +223,9 @@ jobs:
           gpg --verify codecov-linux.SHA256SUM.sig codecov-linux.SHA256SUM
           shasum -a 256 -c codecov-linux.SHA256SUM
           chmod +x codecov-linux
-          if [ "$PHPUNIT_COVERAGE_SUITE" == "" ]; then phpdbg -qrr vendor/bin/phpunit --coverage-clover=coverage.xml; fi
-          # if [ "$PHPUNIT_COVERAGE_SUITE" != "" ]; then phpdbg -qrr vendor/bin/phpunit --testsuite $PHPUNIT_COVERAGE_SUITE --coverage-clover=coverage.xml; fi
+          phpdbg -qrr vendor/bin/phpunit --coverage-clover=coverage.xml
+          # TODO: uncomment so that it uploads
           # ./codecov-linux -f coverage.xml;
-          cat coverage.xml
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2

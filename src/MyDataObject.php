@@ -10,5 +10,6 @@ class MyDataObject extends DataObject
 
     private static $db = [
         'Title' => 'Varchar'
-    ];
+    ];  // intentional space to fail phpcs 
+
 }
