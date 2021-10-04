@@ -40,7 +40,7 @@ jobs:
           # - php: '7.4'
           #   phpunit_test: true
 
-    name: PHP ${{ matrix.php }}${{ matrix.phpunit_test && ' - phpunit' || '' }}${{ matrix.behat_test && ' - behat' || '' }}
+    name: PHP ${{ matrix.php }}${{ matrix.phpunit_test && ' - phpunit' || '' }}${{ matrix.behat_test && ' - behat' || '' }}${{ matrix.npm_test && ' - npm' || '' }}${{ matrix.phpunit_coverage_test && ' - phpunit_coverage' || '' }}
 
     steps:
       - name: Checkout code
@@ -48,12 +48,19 @@ jobs:
 
       - name: Install PHP
         uses: shivammathur/setup-php@v2
-        if: ${{ matrix.behat_test != true }}
+        if: ${{ matrix.behat_test != true && matrix.phpunit_coverage_test != true }}
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, zip
+          tools: composer:v2
+
+      - name: Install PHP - phpunit_coverage
+        uses: shivammathur/setup-php@v2
+        if: ${{ matrix.phpunit_coverage_test == true }}
         with:
           php-version: ${{ matrix.php }}
           extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, xdebug, zip
           tools: composer:v2
-          # pcov
           coverage: xdebug
 
       # For behat, install php manually
@@ -170,7 +177,6 @@ jobs:
             # if [ "$PHPUNIT_COVERAGE_SUITE" != "" ]; then phpdbg -qrr vendor/bin/phpunit --testsuite $PHPUNIT_COVERAGE_SUITE --coverage-clover=coverage.xml; fi
             # ./codecov-linux -f coverage.xml;
             cat coverage.xml
-
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
