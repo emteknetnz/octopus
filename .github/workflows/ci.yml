@@ -49,12 +49,10 @@ jobs:
           #   cow_test: true
 
     # TODO:
-    # - [w] PHPCS_TEST
     # - [w] PHPSTAN_TEST
     # - [w] COW_TEST
     # - [ ] REQUIRE_GRAPHQL, REQUIRE_EXTRA, etc
     # - [w] TRAVIS_BRANCH / COMPOSER_ROOT_VERSION - github.base_ref (pull-request only)
-    # - [w] apt install tidy
 
     name: PHP ${{ matrix.php }}${{ matrix.phpunit_test && ' - phpunit' || '' }}${{ matrix.behat_test && ' - behat' || '' }}${{ matrix.npm_test && ' - npm' || '' }}${{ matrix.phpunit_coverage_test && ' - phpunit_coverage' || '' }}${{ matrix.phpcs_test && ' - phpcs_test' || '' }}${{ matrix.phpstan_test && ' - phpstan' || '' }}${{ matrix.cow_test && ' - cow' || '' }}
 
@@ -131,7 +129,7 @@ jobs:
         run: |
           # github.base_ref is only available on pull-requests and is the target branch
           # github.ref is used for regular branch builds such as crons
-          BRANCH=$(php -r "echo '${{ github.base_ref }}' ?: '${{ github.ref }}';")
+          BRANCH=$(php -r "echo preg_replace('#^.+/#', '', '${{ github.base_ref }}'?:'${{ github.ref }}';")
           if [[ "$BRANCH" =~ ^[1-9]$ ]] || [[ "$BRANCH" =~ ^[1-9]\.[0-9]+$ ]]; then export COMPOSER_ROOT_VERSION="${BRANCH}.x-dev"; elif [[ "$BRANCH" =~ ^[1-9]\.[0-9]+\.[0-9]+ ]]; then export COMPOSER_ROOT_VERSION="${BRANCH}"; else export COMPOSER_ROOT_VERSION="dev-${BRANCH}"; fi
           echo "COMPOSER_ROOT_VERSION is $COMPOSER_ROOT_VERSION"
 
