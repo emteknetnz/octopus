@@ -207,11 +207,11 @@ jobs:
           yarn run test
           yarn run lint
 
-      - name: phpcs_test
-          if: ${{ matrix.phpcs_test == true }}
-          run: |
-            if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" 1>&2; fi
-            vendor/bin/phpcs
+      # - name: phpcs_test
+      #     if: ${{ matrix.phpcs_test == true }}
+      #     run: |
+      #       if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" 1>&2; fi
+      #       vendor/bin/phpcs
 
       - name: phpstan test
           if: ${{ matrix.phpstan_test == true }}
