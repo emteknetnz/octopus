@@ -31,10 +31,14 @@ jobs:
       # fail-fast: true
       matrix:
         include:
-          - php: '7.3'
-            behat_test: true
+          # - php: '7.3'
+          #   behat_test: true
           - php: '7.4'
-            phpunit_test: true
+            npm_test: true
+          - php: '7.4'
+            phpunit_coverage_test: true
+          # - php: '7.4'
+          #   phpunit_test: true
 
     name: PHP ${{ matrix.php }}${{ matrix.phpunit_test && ' - phpunit' || '' }}${{ matrix.behat_test && ' - behat' || '' }}
 
@@ -49,7 +53,8 @@ jobs:
           php-version: ${{ matrix.php }}
           extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, xdebug, zip
           tools: composer:v2
-          coverage: none
+          # pcov
+          coverage: xdebug
 
       # For behat, install php manually
       # This is kind of slow at around 44 seconds, it's only because I was having
@@ -131,6 +136,41 @@ jobs:
           php .github/things/behat.php
           nohup sh -c "chromedriver --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat octopus
+
+      - name: npm
+        if: ${{ matrix.npm_test == true }}
+        run: |
+            rm -rf client/dist
+            nvm install
+            nvm use
+            npm install -g yarn
+            yarn install --network-concurrency 1
+            if [ -d vendor/silverstripe/admin ]; then
+              cd vendor/silverstripe/admin
+              yarn install --network-concurrency 1; fi
+              cd ../../..
+            fi
+            yarn run build
+            git diff-files --quiet -w --relative=client
+            git diff --name-status --relative=client
+            yarn run test
+            yarn run lint
+
+      - name: phpunit_coverage_test
+        if: ${{ matrix.phpunit_coverage_test == true }}
+        run: |
+            curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import
+            curl -Os https://uploader.codecov.io/latest/codecov-linux
+            curl -Os https://uploader.codecov.io/latest/codecov-linux.SHA256SUM
+            curl -Os https://uploader.codecov.io/latest/codecov-linux.SHA256SUM.sig
+            gpg --verify codecov-linux.SHA256SUM.sig codecov-linux.SHA256SUM
+            shasum -a 256 -c codecov-linux.SHA256SUM
+            chmod +x codecov-linux
+            if [ "$PHPUNIT_COVERAGE_SUITE" == "" ]; then phpdbg -qrr vendor/bin/phpunit --coverage-clover=coverage.xml; fi
+            # if [ "$PHPUNIT_COVERAGE_SUITE" != "" ]; then phpdbg -qrr vendor/bin/phpunit --testsuite $PHPUNIT_COVERAGE_SUITE --coverage-clover=coverage.xml; fi
+            # ./codecov-linux -f coverage.xml;
+            cat coverage.xml
+
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
