@@ -96,21 +96,7 @@ jobs:
 
       - name: Create .env
         run: |
-          touch .env
-          echo 'SS_DATABASE_CLASS=MySQLDatabase' >> .env
-          #echo 'SS_DATABASE_SERVER=127.0.0.1' >> .env
-          echo 'SS_DATABASE_SERVER=0.0.0.0' >> .env
-          echo 'SS_DATABASE_PORT=3306' >> .env
-          echo 'SS_DATABASE_USERNAME=root' >> .env
-          echo 'SS_DATABASE_PASSWORD=root' >> .env
-          echo 'SS_DATABASE_NAME=SS_mysite' >> .env
-          echo 'SS_ENVIRONMENT_TYPE=dev' >> .env
-          # http://localhost should be correct. 
-          # - http://localhost:8080 fails in behat with - net::ERR_CONNECTION_REFUSED
-          # - http://127.0.0.1 fails in behat with - Failed to connect to 127.0.0.1 port 9515: Connection refused (Behat\Mink\Exception\DriverException)
-          # - http://0.0.0.0 works the same as http://localhost
-          echo 'SS_BASE_URL=http://localhost' >> .env
-          #echo 'SS_BASE_URL=http://0.0.0.0' >> .env
+          cp .github/things/.env .env
           cat .env
 
       - name: dev/build flush=1
