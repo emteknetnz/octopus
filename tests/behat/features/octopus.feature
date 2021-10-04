@@ -2,8 +2,9 @@ Feature: Test it works
   As a CI system
   I want to test it works
 
-  #Background:
+  Background:
     #Given the "group" "EDITOR group" has permissions "CMS_ACCESS_LeftAndMain"
+    Given a "page" "My page"
 
     # requires behat-extension pr to be permsed first
     #Given I take a screenshot after every step
@@ -11,7 +12,7 @@ Feature: Test it works
 
   Scenario: Test it works
     # Given I am logged in with "ADMIN" permissions
-    When I go to "/"
+    When I go to "/my-page"
     # Trigger screenshot
     Then I press the "Missing" button
     When I go to "/admin/pages"
