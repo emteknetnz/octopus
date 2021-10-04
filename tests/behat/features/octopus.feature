@@ -4,7 +4,7 @@ Feature: Test it works
 
   Background:
     #Given the "group" "EDITOR group" has permissions "CMS_ACCESS_LeftAndMain"
-    Given a "page" "My page"
+    Given a "page" "My page" has the "Content" "<p>My awesome content</p>"
 
     # requires behat-extension pr to be permsed first
     #Given I take a screenshot after every step
