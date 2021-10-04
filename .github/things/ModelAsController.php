@@ -168,10 +168,21 @@ while ($r = mysqli_fetch_assoc($q)) {
     //print_r($r);
 }
 
+# this is finding results
 $c = mysqli_connect('127.0.0.1', 'root', 'root', 'SS_mysite');
 $q = mysqli_query($c, 'select * from SiteTree;');
 while ($r = mysqli_fetch_assoc($q)) {
-    print_r($r);
+    // print_r($r);
+}
+
+echo "1:\n";
+foreach (DB::query('select * from SiteTree') as $r) {
+    print_r(is_array($r) ? $r : $r->toArray());
+}
+
+echo "2:\n";
+foreach (SiteTree::get() as $r) {
+    echo $r->Title . "\n";
 }
 
         if (!$sitetree) {
