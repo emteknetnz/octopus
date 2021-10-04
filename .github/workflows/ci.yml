@@ -42,6 +42,11 @@ jobs:
           # - php: '7.4'
           #   phpunit_test: true
 
+    # TODO:
+    # - PHPCS_TEST
+    # - PHPSTAN_TEST
+    # - COW_TEST
+
     name: PHP ${{ matrix.php }}${{ matrix.phpunit_test && ' - phpunit' || '' }}${{ matrix.behat_test && ' - behat' || '' }}${{ matrix.npm_test && ' - npm' || '' }}${{ matrix.phpunit_coverage_test && ' - phpunit_coverage' || '' }}
 
     steps:
@@ -66,9 +71,8 @@ jobs:
           coverage: xdebug
 
       # For behat, install php manually
-      # This is kind of slow at around 44 seconds, it's only because I was having
-      # issues with libapache2-mod-php which is needed for behat
-      # Ideally would use shivammathur/setup-php@v2 instead which is far faster
+      # This is kind of slow at around 44 seconds, it's only used because there are
+      # issues apt installing libapache2-mod-php which is needed for behat
       - name: Install PHP - Behat
         if: ${{ matrix.behat_test == true }}
         run: |
@@ -81,8 +85,13 @@ jobs:
           # This this verison of PHP instead of the default ubuntu php8.0 install
           sudo rm /etc/alternatives/php
           sudo ln -s /usr/bin/php${{ matrix.php }} /etc/alternatives/php
-          # Test
-          php -v
+
+      - name: Configure PHP
+        run: |
+          sudo sh -c "echo 'memory_limit = 8196M' >> /etc/php/${{ matrix.php }}/cli/php.ini"
+          if [ -f /etc/php/${{ matrix.php }}/apache2/php.ini ]; then
+            sudo sh -c "echo 'memory_limit = 8196M' >> /etc/php/${{ matrix.php }}/apache2/php.ini"
+          fi;
 
       - name: Configure apache
         if: ${{ matrix.behat_test == true }}
@@ -91,14 +100,12 @@ jobs:
           # update dir.conf to use index.php as the primary index doc
           sudo cp .github/things/dir.conf /etc/apache2/mods-enabled/dir.conf
           # this script will create a 000-default.conf file with the pwd as the DocumentRoot
-          # it will also create envvars which is used a bit later
           php .github/things/apache2.php
           sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
           sudo a2enmod rewrite
           # run apache as 'runner:docker' instead of 'www-data:www-data'
-          sudo cp envvars /etc/apache2/envvars
-          sudo chmod 644 /etc/apache2/envvars
-          sudo chown root:root /etc/apache2/envvars
+          sudo sh -c "echo 'export APACHE_RUN_USER=runner' >> /etc/apache2/envvars"
+          sudo sh -c "echo 'export APACHE_RUN_GROUP=docker' >> /etc/apache2/envvars"
           sudo systemctl restart apache2
 
       - name: Install composer - Behat
@@ -124,13 +131,9 @@ jobs:
           cp composer.json artifacts
           cp composer.lock artifacts
 
-      - name: Create .env
+      - name: Prepare Silverstripe
         run: |
           cp .github/things/.env .env
-          cat .env
-
-      - name: dev/build flush=1
-        run: |
           vendor/bin/sake dev/build flush=1
 
       - name: phpunit
@@ -157,9 +160,9 @@ jobs:
             export NVM_DIR="$HOME/.nvm"
             # this loads nvm into the current terminal
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            rm -rf client/dist
             nvm install
             nvm use
+            rm -rf client/dist
             npm install -g yarn
             yarn install --network-concurrency 1
             if [ -d vendor/silverstripe/admin ]; then
@@ -180,7 +183,6 @@ jobs:
       - name: phpunit_coverage_test
         if: ${{ matrix.phpunit_coverage_test == true }}
         run: |
-          memlimit='8192M'
           curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import
           curl -Os https://uploader.codecov.io/latest/codecov-linux
           curl -Os https://uploader.codecov.io/latest/codecov-linux.SHA256SUM
