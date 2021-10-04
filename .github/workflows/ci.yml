@@ -20,8 +20,7 @@ jobs:
       mysql:
         image: mysql:5.7
         env:
-          # MYSQL_HOST: 127.0.0.1
-          MYSQL_HOST: 0.0.0.0
+          MYSQL_HOST: 127.0.0.1
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: SS_mysite
         ports:
@@ -113,108 +112,23 @@ jobs:
           # apache2 is installed and running by default in ubuntu
           # Update dir.conf to use index.php as the primary index doc
           sudo cp .github/things/dir.conf /etc/apache2/mods-enabled/dir.conf
-          # This script will create a 000-default.conf file with the pwd as the DocumentRoot
+          # this script will create a 000-default.conf file with the pwd as the DocumentRoot
+          # it will also create envvars which is used a bit later
           php .github/things/apache2.php
           sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
           sudo a2enmod rewrite
-
-          # Try doing bizarre stuff
-          touch hosts
-          echo '0.0.0.0 localhost' >> hosts
-          sudo cp hosts /etc/hosts
-
-          # Permissions
-          # default is runner:docker
-
-          # Add www-data to docker group
-          #sudo adduser www-data docker
-
-          # Make www-data owner of everything
-          # sudo chown -R www-data:www-data .
-          #sudo chown -R www-data:docker .
-
-          # chmod - a bit brute force, still need to allow the default runner:docker user to be
-          # able to create files such as artifacts
-          # Was having issues adding the current 'runner' user to the www-data group - possibly need to log out
-          # and log back in again for it to take effect, which isn't possible in this context
-          # sudo chmod -R 0777 .
-
-          # run apache as 'runner:docer' instead of 'www-data:www-data'
-          #ls -al /etc/apache2
-          #cat envvars
+          # run apache as 'runner:docker' instead of 'www-data:www-data'
           sudo cp envvars /etc/apache2/envvars
           sudo chmod 644 /etc/apache2/envvars
           sudo chown root:root /etc/apache2/envvars
-          #ls -al /etc/apache2
-
-          # restart apache
           sudo systemctl restart apache2
-
-      # - name: debug
-      #   run: |
-      #     mv .htaccess .xhtaccess
-      #     cp .github/things/debug.php debug.php
-      #     sudo chmod -R 0777 debug.php
-      #     ls -al
-      #     curl http://localhost/debug.php
-      #     mv .xhtaccess .htaccess
-
-      - name: curl test
-        run: |
-          curl http://localhost/
-
-      # - name: curl /
-      #   run: |
-      #     curl http://localhost/
-
-      # - name: curl /about-us
-      #   run: |
-      #     curl http://localhost/about-us
-
-      # - name: curl /admin
-      #   run: |
-      #     # -L means follow redirects
-      #     curl -L http://localhost/admin
 
       - name: behat
         run: |
-          # This script will update behat.yml to work with headless chrome
+          # this script will update behat.yml to work with headless chrome
           php .github/things/behat.php
-          cp behat.yml artifacts
-
-          #mkdir artifacts/screenshots
-          #sudo chown -R www-data:www-data .
-          # set only the top-level artifacts dir to runner:docker for chromedriver.log
-          # keep artifacts/screenshots as www-data
-          #sudo chown runner:docker artifacts
-
-          # https://www.redhat.com/sysadmin/suid-sgid-sticky-bit
-          #sudo adduser www-data docker
-          # sudo chmod -R 1777 .
-
-          #sudo chmod -R 777 .
-          cp .github/things/ModelAsController.php vendor/silverstripe/cms/code/Controllers/ModelAsController.php
-          #cp .github/things/MySQLiConnector.php vendor/silverstripe/framework/src/ORM/Connect/MySQLiConnector.php
-
-          nohup sh -c "chromedriver --allowed-ips='' --port=9515 --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
+          nohup sh -c "chromedriver --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat octopus
-
-          # TODO: remove --allowed-ips and --port
-          #sudo -H -u www-data sh -c 'vendor/bin/behat octopus'
-          # vendor/bin/behat octopus
-          # reset everthing to runner:docker
-          #sudo chown -R runner:docker .
-
-      # ls: cannot access '/var/logs/apache2': No such file or directory
-      # - name: show logs
-      #   if: always()
-      #   run: |
-      #     ls -al /var/logs/apache2
-      #     echo "error.log"
-      #     cat /var/logs/apache2/error.log
-      #     echo ""
-      #     echo "access.log"
-      #     cat /var/logs/apache2/access.log
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
