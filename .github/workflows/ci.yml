@@ -63,7 +63,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install PHP
+      - name: Install PHP - regular
         uses: shivammathur/setup-php@v2
         if: ${{ matrix.behat_test != true && matrix.phpunit_coverage_test != true }}
         with:
@@ -95,6 +95,13 @@ jobs:
           # This this verison of PHP instead of the default ubuntu php8.0 install
           sudo rm /etc/alternatives/php
           sudo ln -s /usr/bin/php${{ matrix.php }} /etc/alternatives/php
+          # Install composer
+          php -r "copy('https://composer.github.io/installer.sig', 'installer.sig');"
+          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+          php -r "if (hash_file('sha384', 'composer-setup.php') === file_get_contents('installer.sig')) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+          if [ -f composer-setup.php ]; then php composer-setup.php && rm composer-setup.php; fi
+          rm installer.sig
+          sudo mv composer.phar /usr/local/bin/composer
 
       - name: Configure PHP
         run: |
@@ -104,7 +111,7 @@ jobs:
           fi
           echo "PHP has been configured"
 
-      - name: Configure apache
+      - name: Configure apache - behat test
         if: ${{ matrix.behat_test == true }}
         run: |
           # apache2 is installed and running by default in ubuntu
@@ -119,16 +126,6 @@ jobs:
           sudo sh -c "echo 'export APACHE_RUN_GROUP=docker' >> /etc/apache2/envvars"
           sudo systemctl restart apache2
           echo "Apache has been configured"
-
-      - name: Install composer - behat test
-        if: ${{ matrix.behat_test == true }}
-        run: |
-          php -r "copy('https://composer.github.io/installer.sig', 'installer.sig');"
-          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-          php -r "if (hash_file('sha384', 'composer-setup.php') === file_get_contents('installer.sig')) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
-          if [ -f composer-setup.php ]; then php composer-setup.php && rm composer-setup.php; fi
-          rm installer.sig
-          sudo mv composer.phar /usr/local/bin/composer
 
       - name: Composer
         run: |
