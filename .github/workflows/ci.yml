@@ -16,11 +16,6 @@ on:
     # TODO: could possibly get rid of inputs? instead just see if files exists e.g. if behat.yml then run endtoend
     # does mean that behat job will be created in modules that don't have behat though .. probably keep then?
     inputs:
-      cow:
-        type: boolean
-        description: "cow validate"
-        required: false
-        default: true
       endtoend:
         type: boolean
         description: "behat"
@@ -38,7 +33,7 @@ on:
         default: true
       phplint:
         type: boolean
-        description: "phpcs, phpstan (optional)"
+        description: "phpcs, phpstan (optional), cow schema validate"
         required: false
         default: true
       phpunit:
@@ -88,13 +83,10 @@ jobs:
           # phpstan probably works though needs to be tested on something that actually uses it
           # - php: '7.4'
           #   phpstan: true
-          # cow probably works though needs to be tested on something that uses it
-          - php: '7.4'
-            cow: true
-            if: ${{ inputs.cow }}
 
     # TODO:
     # - [ ] composer REQUIRE_GRAPHQL, REQUIRE_EXTRA, etc
+    # - [ ] PDO
 
     name: PHP ${{ matrix.php }}${{ matrix.phpunit && ' - phpunit' || '' }}${{ matrix.behat && ' - behat' || '' }}${{ matrix.npm && ' - npm' || '' }}${{ matrix.phpcoverage && ' - phpcoverage' || '' }}${{ matrix.phpcs && ' - phpcs' || '' }}${{ matrix.phpstan && ' - phpstan' || '' }}${{ matrix.cow && ' - cow' || '' }}
 
@@ -181,7 +173,7 @@ jobs:
           echo "COMPOSER_ROOT_VERSION is $COMPOSER_ROOT_VERSION"
           composer require silverstripe/installer:4.9.x-dev --no-update --prefer-dist
           composer require silverstripe/recipe-testing:^1 --no-update --prefer-dist
-          if [ ${{ matrix.cow }} ]; then
+          if [ ${{ matrix.phplint }} ]; then
             composer require --no-update silverstripe/cow dev-master --no-update --prefer-dist
           fi
           cp composer.json artifacts
@@ -206,13 +198,6 @@ jobs:
           php .github/things/behat.php
           nohup sh -c "chromedriver --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat octopus
-          echo "Passed"
-
-      - name: cow 
-        if: ${{ matrix.cow == true }}
-        run: |
-          if [ ! -f .cow.json ]; then echo "Missing .cow.json" && exit 1; fi
-          vendor/bin/cow schema:validate
           echo "Passed"
 
       - name: js
@@ -245,7 +230,7 @@ jobs:
           echo "Passed"
 
       - name: phplint
-        if: ${{ matrix.phpcs == true }}
+        if: ${{ matrix.phplint == true }}
         run: |
           # phpcs is required
           if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" && exit 1; fi
@@ -253,6 +238,10 @@ jobs:
           # phpstan is optional
           if [ -f phpstan.neon.dist ]; then
             vendor/bin/phpstan analyse
+          fi
+          # cow validation is also done here due to it being a tiny piece of work not meriting its own job
+          if [ -f .cow.json ];
+            vendor/bin/cow schema:validate
           fi
           echo "Passed"
 
