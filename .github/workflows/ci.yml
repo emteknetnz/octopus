@@ -87,6 +87,9 @@ jobs:
         run: |
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/matrix.php
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/workflows/ci.yml
+          echo inputs
+          touch inputs
+          echo "${{ inputs }}" > inputs
           MATRIX_JSON=$(php matrix.php)
           rm matrix.php
           rm ci.yml
