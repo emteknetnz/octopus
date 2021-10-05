@@ -1,4 +1,5 @@
 # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions
+# https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability
 # https://docs.github.com/en/actions/learn-github-actions/reusing-workflows
 
 name: ci
@@ -49,6 +50,27 @@ on:
 
 jobs:
 
+  # used to generate a dynamic jobs matrix
+  genmatrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.generate-matrix.outputs.matrix }}
+    steps:
+      # not sure why I'd need checkout, try deleteing later
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+      - name: generate matrix
+        id: generate-matrix
+        run: |
+          wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/matrix.php
+          # wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/workflows/ci.yml
+          MATRIX_JSON=$(php matrix.php)
+          rm matrix.php
+          # rm ci.yml
+          echo "::set-output name=matrix::${MATRIX_JSON}"
+
   tests:
     # TODO: check if this is an LTS - should be 20.04
     runs-on: ubuntu-latest
@@ -64,34 +86,56 @@ jobs:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
+    needs: genmatrix
     strategy:
+      matrix: ${{fromJson(needs.genmatrix.outputs.matrix)}}
       # set fail-fast to false prevent one job from cancelling other jobs
       fail-fast: false
-      matrix:
-        include:
-          # behat test works - TODO: switch to serve.php TODO: change to endtoend for abstraction
-          # - php: '7.3'
-          #   behat: true
-          # npm test probably works, though needs to be tested on a proper repo
-          # - php: '7.4'
-          #   npm: true
-          - php: '7.4'
-            phpunit: true
-          # phpunit coverage test works
-          # phpcoverage limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
-          # - php: '7.3'
-          #   phpcoverage: true
-          - php: '7.4'
-            phplint: true
-          # phpstan probably works though needs to be tested on something that actually uses it
-          # - php: '7.4'
-          #   phpstan: true
+      # I've gone with a non-configurable 'provision' that will run all jobs, including behat and js, on all
+      # modules.  It will do 'feature-detection' ([ -f behat.yml ]) to determine if it actually does anything
+      # reason why endtoend + js jobs are created on modules that don't require them, like -behat-npm.yml provisions
+      # did on travis-shared-config - why don't we just pass in `inputs` (uses) from the module yml?
+      # A few failed solutions
+      # 1. strategy.matrix.include[*].if:${{ inputs.endtoend }} - sadly doesn't work
+      # 2. the `jobs.<job_id>.if` context doesn't give us access to the matrix values
+      # https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability
+      # this means we pass in inputs.endtoend or inputs.js from the module yml file, and then have this on
+      # jobs.tests.if: ${{ matrix.endtoend && inputs.endtoend }} - in order to not create the endtoend tests for modules
+      # that don't need them
+      # 3. (will probably do this) dynamic matrix - github-actions doesn't allow dynamic matrix without quite a bit of hacking which involves
+      # having the matrix defined in a seperate json file and then read with fromJson() it becomes hard to read e.g
+      # https://github.com/frezbo/dockerfiles/blob/6701b8cffc3b3628ad72b541d2c36ac87e1e9b8f/.github/workflows/ci.yml
+      # matrix:
+      #   include:
+      #     # behat test works - TODO: switch to serve.php TODO: change to endtoend for abstraction
+      #     # - php: '7.3'
+      #     #   behat: true
+      #     # npm test probably works, though needs to be tested on a proper repo
+      #     # - php: '7.4'
+      #     #   npm: true
+      #     - php: '7.4'
+      #       phpunit: true
+      #     # phpunit coverage test works
+      #     # phpcoverage limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
+      #     # - php: '7.3'
+      #     #   phpcoverage: true
+      #     - php: '7.4'
+      #       phplint: true
+      #     # phpstan probably works though needs to be tested on something that actually uses it
+      #     # - php: '7.4'
+      #     #   phpstan: true
 
     # TODO:
-    # - [ ] composer REQUIRE_GRAPHQL, REQUIRE_EXTRA, etc
-    # - [ ] PDO
+    # - [ ] provision as inputs? e.g. self (no jobs) how would that work?
+    # - [ ] custom jobs matrix in inputs
+    # (kind of seems like I'll need the json matrix)
+    # - [ ] Artifacts aren't working right when in reusing jobs context
+    # - [ ] composer REQUIRE_GRAPHQL, etc
+    # - [ ] matrix entry for graphql3 vs 4 for behat
+    # - [ ] PDO matrix entry
+    # - [ ] Probably get rid of apache and use serve.php for behat since it'll run the job faster and it simplies this file (though behat will always be slow)
 
-    name: PHP ${{ matrix.php }}${{ matrix.phpunit && ' - phpunit' || '' }}${{ matrix.behat && ' - behat' || '' }}${{ matrix.npm && ' - npm' || '' }}${{ matrix.phpcoverage && ' - phpcoverage' || '' }}${{ matrix.phplint && ' - phplint' || '' }}${{ matrix.phpstan && ' - phpstan' || '' }}${{ matrix.cow && ' - cow' || '' }}
+    name: PHP ${{ matrix.php }}${{ matrix.phpunit && ' - phpunit' || '' }}${{ matrix.endtoend && ' - endtoend' || '' }}${{ matrix.js && ' - js' || '' }}${{ matrix.phpcoverage && ' - phpcoverage' || '' }}${{ matrix.phplint && ' - phplint' || '' }}
 
     steps:
       - name: Preparation
@@ -199,9 +243,16 @@ jobs:
 
       - name: Prepare Silverstripe
         run: |
+          # Add .env file
           if [ ${{ matrix.behat == true }} ] && [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/.env
+          # Surprisingly we probably don't want to dev/build flush here
           # vendor/bin/sake dev/build flush=1
+          # I was having issues with a unit test getting this issue
+          # Identifier name 'SilverStripe_CampaignAdmin_Tests_AddToCampaignValidatorTest_TestObject' is too long
+          # Which is possibly to do with the /tmp/silverstripe-cache-php7.4.xyz dir being out of sync with TestOnly objects
+          # If we really need to dev/build flush here (perhaps just for visibility) then we could delete the silverstripe-cache dir afterwards with
+          # dir=\$(ls /tmp | grep silverstripe-cache | head -1); if [ "\$dir" ]; then rm -rf /tmp/\$dir; fi
 
       - name: phpunit
         if: ${{ matrix.phpunit == true }}
