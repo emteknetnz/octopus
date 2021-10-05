@@ -76,7 +76,6 @@ jobs:
           # phpcoverage limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
           # - php: '7.3'
           #   phpcoverage: true
-          # phpcs works # TODO: change to linting
           - php: '7.4'
             phplint: true
             if: ${{ inputs.phplint }}
@@ -88,7 +87,7 @@ jobs:
     # - [ ] composer REQUIRE_GRAPHQL, REQUIRE_EXTRA, etc
     # - [ ] PDO
 
-    name: PHP ${{ matrix.php }}${{ matrix.phpunit && ' - phpunit' || '' }}${{ matrix.behat && ' - behat' || '' }}${{ matrix.npm && ' - npm' || '' }}${{ matrix.phpcoverage && ' - phpcoverage' || '' }}${{ matrix.phpcs && ' - phpcs' || '' }}${{ matrix.phpstan && ' - phpstan' || '' }}${{ matrix.cow && ' - cow' || '' }}
+    name: PHP ${{ matrix.php }}${{ matrix.phpunit && ' - phpunit' || '' }}${{ matrix.behat && ' - behat' || '' }}${{ matrix.npm && ' - npm' || '' }}${{ matrix.phpcoverage && ' - phpcoverage' || '' }}${{ matrix.phplint && ' - phplint' || '' }}${{ matrix.phpstan && ' - phpstan' || '' }}${{ matrix.cow && ' - cow' || '' }}
 
     steps:
       - name: Preparation
