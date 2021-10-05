@@ -85,16 +85,18 @@ jobs:
           extensions: yaml
       - name: generate matrix
         id: generate-matrix
+
         run: |
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/matrix.php
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/workflows/ci.yml
-          touch module_inputs.txt
-          echo "run_endtoend=${{ inputs.run_endtoend }}" >> module_inputs.txt
-          echo "run_js=${{ inputs.run_js }}" >> module_inputs.txt
-          echo "run_phpcoverage=${{ inputs.run_phpcoverage }}" >> module_inputs.txt
-          echo "run_phplint=${{ inputs.run_phplint }}" >> module_inputs.txt
-          echo "run_phpunit=${{ inputs.run_phpunit }}" >> module_inputs.txt
-          cat module_inputs.txt
+          touch inputs.txt
+          echo "run_endtoend=${{ inputs.run_endtoend }}" >> inputs.txt
+          echo "run_js=${{ inputs.run_js }}" >> inputs.txt
+          echo "run_phpcoverage=${{ inputs.run_phpcoverage }}" >> inputs.txt
+          echo "run_phplint=${{ inputs.run_phplint }}" >> inputs.txt
+          echo "run_phpunit=${{ inputs.run_phpunit }}" >> inputs.txt
+          cat inputs.txt
+          echo $(php matrix.php)
           MATRIX_JSON=$(php matrix.php)
           echo "::set-output name=matrix::${MATRIX_JSON}"
 
