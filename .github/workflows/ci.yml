@@ -5,16 +5,18 @@
 
 name: tests
 
-on:
-  push:
-  pull_request:
-  # every day at midnight:
-  schedule:
-    - cron: '0 0 * * *'
+# on:
+#   push:
+#   pull_request:
+#   # every day at midnight:
+#   # currently about 1:30pm nzt
+#   schedule:
+#     - cron: '0 0 * * *'
 
 jobs:
   tests:
-    runs-on: ubuntu-20.04
+    # TODO: check if this is an LTS - should be 20.04
+    runs-on: ubuntu-latest
 
     services:
       mysql:
@@ -32,9 +34,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # behat test works
-          - php: '7.3'
-            behat_test: true
+          # behat test works - TODO: switch to serve.php
+          # - php: '7.3'
+          #   behat_test: true
           # npm test probably works, though needs to be tested on a proper repo
           # - php: '7.4'
           #   npm_test: true
@@ -42,8 +44,8 @@ jobs:
             phpunit_test: true
           # phpunit coverage test works
           # phpunit_coverage_test limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
-          - php: '7.3'
-            phpunit_coverage_test: true
+          # - php: '7.3'
+          #   phpunit_coverage_test: true
           # phpcs works
           - php: '7.4'
             phpcs_test: true
@@ -80,6 +82,8 @@ jobs:
           tools: composer:v2
           coverage: xdebug
 
+      # TODO: probably don't need apache, just revert to using serve.php for behat
+      # would need to check if cms installed?  it's a different bootstrap to what's in behat.yml
       # For behat, install php manually
       # This is kind of slow at around 44 seconds, it's only used because there are
       # issues apt installing libapache2-mod-php which is needed for behat
@@ -214,6 +218,7 @@ jobs:
           vendor/bin/phpstan analyse
           echo "Passed"
 
+      # could possibly replace with https://github.com/marketplace/actions/codecov
       - name: phpunit coverage test
         if: ${{ matrix.phpunit_coverage_test == true }}
         run: |
