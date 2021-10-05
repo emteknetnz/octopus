@@ -28,7 +28,7 @@ foreach ($ci_inputs as $input => $arr) {
 
 $out = ['jobs'=>['metadata'=>['strategy'=>['matrix'=>['include']]]]];
 
-foreach ($ci_matrix['include'] as $arr) {
+foreach ($ci_matrix as $arr) {
     foreach (array_keys($arr) as $test) {
         if ($test == 'php') {
             continue;
