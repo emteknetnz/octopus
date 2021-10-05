@@ -12,7 +12,7 @@ foreach (explode("\n", file_get_contents('inputs.txt')) as $line) {
     $includes[$test] = true; 
 }
 
-$out = ['jobs'=>['metadata'=>['strategy'=>['matrix'=>['include']]]]];
+$out = ['jobs'=>['metadata'=>['strategy'=>['matrix'=>['include' => []]]]]];
 
 foreach ($matrix as $arr) {
     foreach (array_keys($arr) as $test) {
