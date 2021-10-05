@@ -1,9 +1,11 @@
 <?php
 # Reads the yml matrix for ci.yml and inputs.txt and creates a new json matrix
 $yml = file_get_contents('ci.yml');
+// fix really weird bug in yaml_parse where 'on' key is turned into '1'
+$yml = str_replace("\non:", "\nonx:", $yml);
 $y = yaml_parse($yml);
 $ci_matrix = $y['jobs']['metadata']['strategy']['matrix']['include'];
-$ci_inputs = $y['on']['workflow_call']['inputs'];
+$ci_inputs = $y['onx']['workflow_call']['inputs'];
 $module_inputs = [];
 foreach (explode("\n", file_get_contents('module_inputs.txt')) as $line) {
     list($input, $b) = preg_split('#=#', $line);
