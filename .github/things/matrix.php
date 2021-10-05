@@ -8,18 +8,15 @@ foreach (explode("\n", file_get_contents('inputs.txt')) as $line) {
     if (empty($line)) continue;
     list($input, $do_include) = preg_split('#=#', $line);
     $do_include = $do_include == 'true';
-    if (!$do_include) continue;
     $test = str_replace('run_', '', $input); // e.g. run_phplint => phplint
-    $includes[$test] = true; 
+    $includes[$test] = $do_include; 
 }
 
 $new_matrix = ['include' => []];
 foreach ($matrix['include'] as $arr) {
     foreach (array_keys($arr) as $test) {
-        if ($test == 'php') continue;
-        if (isset($includes[$test]) && $includes[$test]) {
-            $new_matrix['include'][] = $arr;
-        }
+        if ($test == 'php' || !isset($includes[$test]) || !$includes[$test]) continue;
+        $new_matrix['include'][] = $arr;
     }
 }
 

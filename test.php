@@ -348,7 +348,36 @@ jobs:
           path: artifacts
 
 YML;
+
+$inputs = <<<TXT
+run_endtoend=false
+run_js=false
+run_phpcoverage=true
+run_phplint=false
+run_phpunit=true
+TXT;
+
 $yml = str_replace("\non:", "\nonx:", $yml);
 $y = yaml_parse($yml);
-$ci_inputs = $y['onx']['workflow_call']['inputs'];
-echo json_encode($ci_inputs, JSON_PRETTY_PRINT);
+$matrix = $y['jobs']['metadata']['strategy']['matrix'];
+$includes = [];
+foreach (explode("\n", $inputs) as $line) {
+    if (empty($line)) continue;
+    list($input, $do_include) = preg_split('#=#', $line);
+    $do_include = $do_include == 'true';
+    $test = str_replace('run_', '', $input); // e.g. run_phplint => phplint
+    $includes[$test] = $do_include; 
+}
+
+$new_matrix = ['include' => []];
+foreach ($matrix['include'] as $arr) {
+    foreach (array_keys($arr) as $test) {
+        if ($test == 'php' || !isset($includes[$test]) || !$includes[$test]) continue;
+        $new_matrix['include'][] = $arr;
+    }
+}
+
+$json = json_encode($new_matrix);
+$json = preg_replace("#\n +#", "\n", $json);
+$json = str_replace("\n", '', $json);
+echo trim($json);
