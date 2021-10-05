@@ -43,6 +43,7 @@ on:
         default: true
 
 jobs:
+
   tests:
     # TODO: check if this is an LTS - should be 20.04
     runs-on: ubuntu-latest
@@ -71,17 +72,17 @@ jobs:
           #   npm: true
           - php: '7.4'
             phpunit: true
-            if: ${{ inputs.phpunit }}
           # phpunit coverage test works
           # phpcoverage limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
           # - php: '7.3'
           #   phpcoverage: true
           - php: '7.4'
             phplint: true
-            if: ${{ inputs.phplint }}
           # phpstan probably works though needs to be tested on something that actually uses it
           # - php: '7.4'
           #   phpstan: true
+
+    if: ${{ matrix.phpunit && inputs.phpunit || matrix.phplint && inputs.phplint }}
 
     # TODO:
     # - [ ] composer REQUIRE_GRAPHQL, REQUIRE_EXTRA, etc
