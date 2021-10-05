@@ -201,7 +201,7 @@ jobs:
         run: |
           if [ ${{ matrix.behat == true }} ] && [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/.env
-          vendor/bin/sake dev/build flush=1
+          # vendor/bin/sake dev/build flush=1
 
       - name: phpunit
         if: ${{ matrix.phpunit == true }}
@@ -263,7 +263,7 @@ jobs:
             vendor/bin/phpstan analyse
           fi
           # cow validation is also done here due to it being a tiny piece of work not meriting its own job
-          if [ -f .cow.json ];
+          if [ -f .cow.json ]; then
             vendor/bin/cow schema:validate
           fi
           echo "Passed"
