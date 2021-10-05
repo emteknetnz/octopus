@@ -13,6 +13,11 @@ name: ci
 
 on:
   workflow_call:
+    inputs:
+      require_extra:
+        type: string
+        required: false
+        default: ''
 #     # TODO: could possibly get rid of inputs? instead just see if files exists e.g. if behat.yml then run endtoend
 #     # does mean that behat job will be created in modules that don't have behat though .. probably keep then?
 #     inputs:
@@ -167,6 +172,7 @@ jobs:
 
       - name: Composer
         run: |
+          # Update composer.json and install dependencies
           if [ ${{ matrix.behat == true }} ] && [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
           # github.base_ref is only available on pull-requests and is the target branch
           # github.ref is used for regular branch builds such as crons
@@ -177,6 +183,9 @@ jobs:
           composer require silverstripe/recipe-testing:^1 --no-update --prefer-dist
           if [ ${{ matrix.phplint }} ]; then
             composer require --no-update silverstripe/cow dev-master --no-update --prefer-dist
+          fi
+          if [ ${{ inputs.require_extra }} ]; then
+            composer require --no-update ${{ inputs.require_extra }} --no-update --prefer-dist
           fi
           cp composer.json artifacts
           composer update --prefer-dist --no-interaction --no-progress
