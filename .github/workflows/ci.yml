@@ -87,12 +87,14 @@ jobs:
         run: |
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/matrix.php
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/workflows/ci.yml
-          echo inputs
-          touch inputs
-          echo "${{ inputs }}" > inputs
+          echo module_inputs.txt
+          touch module_inputs.txt
+          echo "run_endtoend=${{ inputs.run_endtoend }}" >> module_inputs.txt
+          echo "run_js=${{ inputs.run_js }}" >> module_inputs.txt
+          echo "run_phpcoverage=${{ inputs.run_phpcoverage }}" >> module_inputs.txt
+          echo "run_phplint=${{ inputs.run_phplint }}" >> module_inputs.txt
+          echo "run_phpunit=${{ inputs.run_phpunit }}" >> module_inputs.txt
           MATRIX_JSON=$(php matrix.php)
-          rm matrix.php
-          rm ci.yml
           echo "::set-output name=matrix::${MATRIX_JSON}"
 
   tests:
