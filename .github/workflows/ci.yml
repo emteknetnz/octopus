@@ -1,7 +1,5 @@
-# https://docs.github.com/en/actions
 # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions
-
-# https://github.com/silverstripe/silverstripe-travis-shared/blob/master/config/base.yml
+# https://docs.github.com/en/actions/learn-github-actions/reusing-workflows
 
 name: tests
 
@@ -13,13 +11,17 @@ name: tests
 #   schedule:
 #     - cron: '0 0 * * *'
 
-
 on:
   workflow_call:
-    # inputs:
-    #   phpunit:
-    #     required: false
-    #     type: bool
+    inputs:
+      phpunit:
+        type: bool
+        required: false
+        default: true
+      phpcs:
+        type: bool
+        required: false
+        default: true
 
 jobs:
   tests:
@@ -42,32 +44,34 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # behat test works - TODO: switch to serve.php
+          # behat test works - TODO: switch to serve.php TODO: change to endtoend for abstraction
           # - php: '7.3'
-          #   behat_test: true
+          #   behat: true
           # npm test probably works, though needs to be tested on a proper repo
           # - php: '7.4'
-          #   npm_test: true
+          #   npm: true
           - php: '7.4'
-            phpunit_test: true
+            phpunit: true
+            if: ${{ inputs.phpunit }}
           # phpunit coverage test works
-          # phpunit_coverage_test limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
+          # phpcoverage limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
           # - php: '7.3'
-          #   phpunit_coverage_test: true
-          # phpcs works
+          #   phpcoverage: true
+          # phpcs works # TODO: change to linting
           - php: '7.4'
-            phpcs_test: true
+            phpcs: true
+            if: ${{ inputs.phpcs }}
           # phpstan probably works though needs to be tested on something that actually uses it
           # - php: '7.4'
-          #   phpstan_test: true
+          #   phpstan: true
           # cow probably works though needs to be tested on something that uses it
           # - php: '7.4'
-          #   cow_test: true
+          #   cow: true
 
     # TODO:
     # - [ ] composer REQUIRE_GRAPHQL, REQUIRE_EXTRA, etc
 
-    name: PHP ${{ matrix.php }}${{ matrix.phpunit_test && ' - phpunit' || '' }}${{ matrix.behat_test && ' - behat' || '' }}${{ matrix.npm_test && ' - npm' || '' }}${{ matrix.phpunit_coverage_test && ' - phpunit_coverage' || '' }}${{ matrix.phpcs_test && ' - phpcs_test' || '' }}${{ matrix.phpstan_test && ' - phpstan' || '' }}${{ matrix.cow_test && ' - cow' || '' }}
+    name: PHP ${{ matrix.php }}${{ matrix.phpunit && ' - phpunit' || '' }}${{ matrix.behat && ' - behat' || '' }}${{ matrix.npm && ' - npm' || '' }}${{ matrix.phpcoverage && ' - phpcoverage' || '' }}${{ matrix.phpcs && ' - phpcs' || '' }}${{ matrix.phpstan && ' - phpstan' || '' }}${{ matrix.cow && ' - cow' || '' }}
 
     steps:
       - name: Checkout code
@@ -75,7 +79,7 @@ jobs:
 
       - name: Install PHP - regular
         uses: shivammathur/setup-php@v2
-        if: ${{ matrix.behat_test != true && matrix.phpunit_coverage_test != true }}
+        if: ${{ matrix.behat != true && matrix.phpcoverage != true }}
         with:
           php-version: ${{ matrix.php }}
           extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, zip
@@ -83,7 +87,7 @@ jobs:
 
       - name: Install PHP - phpunit coverage test
         uses: shivammathur/setup-php@v2
-        if: ${{ matrix.phpunit_coverage_test == true }}
+        if: ${{ matrix.phpcoverage == true }}
         with:
           php-version: ${{ matrix.php }}
           extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, xdebug, zip
@@ -96,7 +100,7 @@ jobs:
       # This is kind of slow at around 44 seconds, it's only used because there are
       # issues apt installing libapache2-mod-php which is needed for behat
       - name: Install PHP - behat test
-        if: ${{ matrix.behat_test == true }}
+        if: ${{ matrix.behat == true }}
         run: |
           # Make all php versions other than the current main version available
           sudo apt update && sudo sudo apt install -y software-properties-common
@@ -124,7 +128,7 @@ jobs:
           echo "PHP has been configured"
 
       - name: Configure apache - behat test
-        if: ${{ matrix.behat_test == true }}
+        if: ${{ matrix.behat == true }}
         run: |
           # apache2 is installed and running by default in ubuntu
           # update dir.conf to use index.php as the primary index doc
@@ -146,14 +150,14 @@ jobs:
           BRANCH=$(php -r "echo preg_replace('#^.+/#', '', '${{ github.base_ref }}'?:'${{ github.ref }}');")
           if [[ "$BRANCH" =~ ^[1-9]$ ]] || [[ "$BRANCH" =~ ^[1-9]\.[0-9]+$ ]]; then export COMPOSER_ROOT_VERSION="${BRANCH}.x-dev"; elif [[ "$BRANCH" =~ ^[1-9]\.[0-9]+\.[0-9]+ ]]; then export COMPOSER_ROOT_VERSION="${BRANCH}"; else export COMPOSER_ROOT_VERSION="dev-${BRANCH}"; fi
           echo "COMPOSER_ROOT_VERSION is $COMPOSER_ROOT_VERSION"
-          composer require silverstripe/installer:^4 --no-update --prefer-dist
+          composer require silverstripe/installer:4.9.x-dev --no-update --prefer-dist
           composer require silverstripe/recipe-testing:^1 --no-update --prefer-dist
-          if [ ${{ matrix.cow_test }} ]; then
+          if [ ${{ matrix.cow }} ]; then
             composer require --no-update silverstripe/cow dev-master --no-update --prefer-dist
           fi
-          composer update --prefer-dist --no-interaction --no-progress
           mkdir artifacts
           cp composer.json artifacts
+          composer update --prefer-dist --no-interaction --no-progress
           cp composer.lock artifacts
 
       - name: Prepare Silverstripe
@@ -161,14 +165,14 @@ jobs:
           cp .github/things/.env .env
           vendor/bin/sake dev/build flush=1
 
-      - name: phpunit test
-        if: ${{ matrix.phpunit_test == true }}
+      - name: phpunit
+        if: ${{ matrix.phpunit == true }}
         run: |
           vendor/bin/phpunit --verbose
           echo "Passed"
 
-      - name: behat test
-        if: ${{ matrix.behat_test == true }}
+      - name: behat
+        if: ${{ matrix.behat == true }}
         run: |
           # this script will update behat.yml to work with headless chrome
           php .github/things/behat.php
@@ -176,15 +180,16 @@ jobs:
           vendor/bin/behat octopus
           echo "Passed"
 
-      - name: cow test 
-        if: ${{ matrix.cow_test == true }}
+      - name: cow 
+        if: ${{ matrix.cow == true }}
         run: |
           if [ ! -f .cow.json ]; then echo "Missing .cow.json" && exit 1; fi
           vendor/bin/cow schema:validate
           echo "Passed"
 
-      - name: npm test
-        if: ${{ matrix.npm_test == true }}
+      # TODO: rename js, client, jsclient or something
+      - name: npm
+        if: ${{ matrix.npm == true }}
         run: |
           wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh
           php -r "if (hash_file('sha384', 'install.sh') === 'dd4b116a7452fc3bb8c0e410ceac27e19b0ba0f900fe2f91818a95c12e92130fdfb8170fec170b9fb006d316f6386f2b') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('install.sh'); } echo PHP_EOL;"
@@ -212,23 +217,24 @@ jobs:
           yarn run lint
           echo "Passed"
 
-      - name: phpcs_test
-        if: ${{ matrix.phpcs_test == true }}
+      # TODO: change to phplint and combined phpstan
+      - name: phpcs
+        if: ${{ matrix.phpcs == true }}
         run: |
           if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" && exit 1; fi
           vendor/bin/phpcs
           echo "Passed"
 
-      - name: phpstan test
-        if: ${{ matrix.phpstan_test == true }}
+      - name: phpstan
+        if: ${{ matrix.phpstan == true }}
         run: |
           if [ ! -f phpstan.neon.dist ]; then echo "Missing phpstan.neon.dist" && exit 1; fi
           vendor/bin/phpstan analyse
           echo "Passed"
 
       # could possibly replace with https://github.com/marketplace/actions/codecov
-      - name: phpunit coverage test
-        if: ${{ matrix.phpunit_coverage_test == true }}
+      - name: phpcoverage
+        if: ${{ matrix.phpcoverage == true }}
         run: |
           curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import
           curl -Os https://uploader.codecov.io/latest/codecov-linux
