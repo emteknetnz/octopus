@@ -18,27 +18,27 @@ on:
     inputs:
       endtoend:
         type: boolean
-        description: "behat"
+        #description: "behat"
         required: false
         default: false
       js:
         type: boolean
-        description: "yarn build diff, yarn lint, yarn test"
+        #description: "yarn build diff, yarn lint, yarn test"
         required: false
         default: false
       phpcoverage:
         type: boolean
-        description: "codecov"
+        #description: "codecov"
         required: false
         default: true
       phplint:
         type: boolean
-        description: "phpcs, phpstan (optional), cow schema validate"
+        #description: "phpcs, phpstan (optional), cow schema validate"
         required: false
         default: true
       phpunit:
         type: boolean
-        descrtiption: "phpunit"
+        #descrtiption: "phpunit"
         required: false
         default: true
 
