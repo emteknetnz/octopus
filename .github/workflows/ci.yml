@@ -81,10 +81,10 @@ jobs:
         id: generate-matrix
         run: |
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/matrix.php
-          # wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/workflows/ci.yml
+          wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/workflows/ci.yml
           MATRIX_JSON=$(php matrix.php)
           rm matrix.php
-          # rm ci.yml
+          rm ci.yml
           echo "::set-output name=matrix::${MATRIX_JSON}"
 
   tests:
