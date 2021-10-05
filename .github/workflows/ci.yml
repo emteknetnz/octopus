@@ -13,34 +13,36 @@ name: tests
 
 on:
   workflow_call:
+    # TODO: could possibly get rid of inputs? instead just see if files exists e.g. if behat.yml then run endtoend
+    # does mean that behat job will be created in modules that don't have behat though .. probably keep then?
     inputs:
       cow:
-        type: bool
+        type: boolean
         description: "cow validate"
         required: false
         default: true
       endtoend:
-        type: bool
+        type: boolean
         description: "behat"
         required: false
         default: false
       js:
-        type: bool
+        type: boolean
         description: "yarn build diff, yarn lint, yarn test"
         required: false
-        default: true
+        default: false
       phpcoverage:
-        type: bool
+        type: boolean
         description: "codecov"
         required: false
         default: true
       phplint:
-        type: bool
+        type: boolean
         description: "phpcs, phpstan (optional)"
         required: false
         default: true
       phpunit:
-        type: bool
+        type: boolean
         descrtiption: "phpunit"
         required: false
         default: true
