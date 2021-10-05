@@ -2,7 +2,7 @@
 # Reads the yml matrix for ci.yml and inputs.txt and creates a new json matrix
 $yml = file_get_contents('ci.yml');
 $y = yaml_parse($yml);
-$matrix = $y['jobs']['metadata']['strategy']['matrix']['include'];
+$matrix = $y['jobs']['metadata']['strategy']['matrix'];
 $includes = [];
 foreach (explode("\n", file_get_contents('inputs.txt')) as $line) {
     if (empty($line)) continue;
@@ -12,18 +12,17 @@ foreach (explode("\n", file_get_contents('inputs.txt')) as $line) {
     $includes[$test] = true; 
 }
 
-$out = ['jobs'=>['metadata'=>['strategy'=>['matrix'=>['include' => []]]]]];
-
-foreach ($matrix as $arr) {
+$new_matrix = ['include' => []];
+foreach ($matrix['include'] as $arr) {
     foreach (array_keys($arr) as $test) {
         if ($test == 'php') continue;
         if (isset($includes[$test]) && $includes[$test]) {
-            $out['jobs']['metadata']['strategy']['matrix']['include'][] = $arr;
+            $new_matrix['include'][] = $arr;
         }
     }
 }
 
-$json = json_encode($out);
+$json = json_encode($new_matrix);
 $json = preg_replace("#\n +#", "\n", $json);
 $json = str_replace("\n", '', $json);
 echo trim($json);
