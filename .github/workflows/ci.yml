@@ -182,10 +182,10 @@ jobs:
           composer require silverstripe/installer:4.9.x-dev --no-update --prefer-dist
           composer require silverstripe/recipe-testing:^1 --no-update --prefer-dist
           if [ ${{ matrix.phplint }} ]; then
-            composer require --no-update silverstripe/cow dev-master --no-update --prefer-dist
+            composer require silverstripe/cow:dev-master --no-update --prefer-dist
           fi
-          if [ ${{ inputs.require_extra }} ]; then
-            composer require --no-update ${{ inputs.require_extra }} --no-update --prefer-dist
+          if [ "${{ inputs.require_extra }}" != "" ]; then
+            composer require -"${{ inputs.require_extra }}" --no-update --prefer-dist
           fi
           cp composer.json artifacts
           composer update --prefer-dist --no-interaction --no-progress
