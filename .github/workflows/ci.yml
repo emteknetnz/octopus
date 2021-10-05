@@ -50,6 +50,9 @@ jobs:
   metadata:
     runs-on: ubuntu-latest
     if: never()
+    steps:
+      - run: |
+         # Do nothing
     strategy:
       matrix:
         include:
