@@ -82,7 +82,7 @@ jobs:
           # - php: '7.4'
           #   phpstan: true
 
-    if: ${{ job.phpunit && inputs.phpunit || job.phplint && inputs.phplint }}
+    if: ${{ inputs.phpunit || inputs.phplint }}
 
     # TODO:
     # - [ ] composer REQUIRE_GRAPHQL, REQUIRE_EXTRA, etc
