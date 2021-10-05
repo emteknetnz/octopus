@@ -49,7 +49,7 @@ jobs:
 
   metadata:
     runs-on: ubuntu-latest
-    if: never()
+    if: ${{ github.action == 'never' }}
     steps:
       - run: |
          # Do nothing
