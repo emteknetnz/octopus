@@ -14,12 +14,34 @@ name: tests
 on:
   workflow_call:
     inputs:
-      phpunit:
+      cow:
         type: bool
+        description: "cow validate"
         required: false
         default: true
-      phpcs:
+      endtoend:
         type: bool
+        description: "behat"
+        required: false
+        default: false
+      js:
+        type: bool
+        description: "yarn build diff, yarn lint, yarn test"
+        required: false
+        default: true
+      phpcoverage:
+        type: bool
+        description: "codecov"
+        required: false
+        default: true
+      phplint:
+        type: bool
+        description: "phpcs, phpstan (optional)"
+        required: false
+        default: true
+      phpunit:
+        type: bool
+        descrtiption: "phpunit"
         required: false
         default: true
 
@@ -59,14 +81,15 @@ jobs:
           #   phpcoverage: true
           # phpcs works # TODO: change to linting
           - php: '7.4'
-            phpcs: true
-            if: ${{ inputs.phpcs }}
+            phplint: true
+            if: ${{ inputs.phplint }}
           # phpstan probably works though needs to be tested on something that actually uses it
           # - php: '7.4'
           #   phpstan: true
           # cow probably works though needs to be tested on something that uses it
-          # - php: '7.4'
-          #   cow: true
+          - php: '7.4'
+            cow: true
+            if: ${{ inputs.cow }}
 
     # TODO:
     # - [ ] composer REQUIRE_GRAPHQL, REQUIRE_EXTRA, etc
@@ -74,6 +97,10 @@ jobs:
     name: PHP ${{ matrix.php }}${{ matrix.phpunit && ' - phpunit' || '' }}${{ matrix.behat && ' - behat' || '' }}${{ matrix.npm && ' - npm' || '' }}${{ matrix.phpcoverage && ' - phpcoverage' || '' }}${{ matrix.phpcs && ' - phpcs' || '' }}${{ matrix.phpstan && ' - phpstan' || '' }}${{ matrix.cow && ' - cow' || '' }}
 
     steps:
+      - name: Preparation
+        run: |
+          mkdir artifacts
+      
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -155,7 +182,6 @@ jobs:
           if [ ${{ matrix.cow }} ]; then
             composer require --no-update silverstripe/cow dev-master --no-update --prefer-dist
           fi
-          mkdir artifacts
           cp composer.json artifacts
           composer update --prefer-dist --no-interaction --no-progress
           cp composer.lock artifacts
@@ -187,9 +213,8 @@ jobs:
           vendor/bin/cow schema:validate
           echo "Passed"
 
-      # TODO: rename js, client, jsclient or something
-      - name: npm
-        if: ${{ matrix.npm == true }}
+      - name: js
+        if: ${{ matrix.js == true }}
         run: |
           wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh
           php -r "if (hash_file('sha384', 'install.sh') === 'dd4b116a7452fc3bb8c0e410ceac27e19b0ba0f900fe2f91818a95c12e92130fdfb8170fec170b9fb006d316f6386f2b') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('install.sh'); } echo PHP_EOL;"
@@ -217,22 +242,18 @@ jobs:
           yarn run lint
           echo "Passed"
 
-      # TODO: change to phplint and combined phpstan
-      - name: phpcs
+      - name: phplint
         if: ${{ matrix.phpcs == true }}
         run: |
+          # phpcs is required
           if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" && exit 1; fi
           vendor/bin/phpcs
+          # phpstan is optional
+          if [ -f phpstan.neon.dist ]; then
+            vendor/bin/phpstan analyse
+          fi
           echo "Passed"
 
-      - name: phpstan
-        if: ${{ matrix.phpstan == true }}
-        run: |
-          if [ ! -f phpstan.neon.dist ]; then echo "Missing phpstan.neon.dist" && exit 1; fi
-          vendor/bin/phpstan analyse
-          echo "Passed"
-
-      # could possibly replace with https://github.com/marketplace/actions/codecov
       - name: phpcoverage
         if: ${{ matrix.phpcoverage == true }}
         run: |
