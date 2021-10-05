@@ -15,40 +15,55 @@ name: ci
 on:
   workflow_call:
     inputs:
-      require_extra:
+      composer_require_extra:
         type: string
         required: false
         default: ''
-#     # TODO: could possibly get rid of inputs? instead just see if files exists e.g. if behat.yml then run endtoend
-#     # does mean that behat job will be created in modules that don't have behat though .. probably keep then?
-#     inputs:
-#       endtoend:
-#         type: boolean
-#         #description: "behat"
-#         required: false
-#         default: false
-#       js:
-#         type: boolean
-#         #description: "yarn build diff, yarn lint, yarn test"
-#         required: false
-#         default: false
-#       phpcoverage:
-#         type: boolean
-#         #description: "codecov"
-#         required: false
-#         default: true
-#       phplint:
-#         type: boolean
-#         #description: "phpcs, phpstan (optional), cow schema validate"
-#         required: false
-#         default: true
-#       phpunit:
-#         type: boolean
-#         #descrtiption: "phpunit"
-#         required: false
-#         default: true
+      run_endtoend:
+        type: boolean
+        #description: "behat"
+        required: false
+        default: false
+      run_js:
+        type: boolean
+        #description: "yarn build diff, yarn lint, yarn test"
+        required: false
+        default: false
+      run_phpcoverage:
+        type: boolean
+        #description: "codecov"
+        required: false
+        default: true
+      run_phplint:
+        type: boolean
+        #description: "phpcs, phpstan (optional), cow schema validate"
+        required: false
+        default: true
+      run_phpunit:
+        type: boolean
+        #descrtiption: "phpunit"
+        required: false
+        default: true
 
 jobs:
+
+  metadata:
+    runs-on: ubuntu-latest
+    if: never()
+    strategy:
+      matrix:
+        include:
+          # phpcoverage limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
+          - php: '7.3'
+            endtoend: true
+          - php: '7.4'
+            js: true
+          - php: '7.3'
+            phpcoverage: true
+          - php: '7.4'
+            phplint: true
+          - php: '7.4'
+            phpunit: true
 
   # used to generate a dynamic jobs matrix
   genmatrix:
@@ -56,11 +71,12 @@ jobs:
     outputs:
       matrix: ${{ steps.generate-matrix.outputs.matrix }}
     steps:
-      # not sure why I'd need checkout, try deleteing later
+      # not sure why I'd need checkout, try deleting later
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Install PHP
         uses: shivammathur/setup-php@v2
+        extensions: yaml
       - name: generate matrix
         id: generate-matrix
         run: |
@@ -91,20 +107,6 @@ jobs:
       matrix: ${{fromJson(needs.genmatrix.outputs.matrix)}}
       # set fail-fast to false prevent one job from cancelling other jobs
       fail-fast: false
-      # I've gone with a non-configurable 'provision' that will run all jobs, including behat and js, on all
-      # modules.  It will do 'feature-detection' ([ -f behat.yml ]) to determine if it actually does anything
-      # reason why endtoend + js jobs are created on modules that don't require them, like -behat-npm.yml provisions
-      # did on travis-shared-config - why don't we just pass in `inputs` (uses) from the module yml?
-      # A few failed solutions
-      # 1. strategy.matrix.include[*].if:${{ inputs.endtoend }} - sadly doesn't work
-      # 2. the `jobs.<job_id>.if` context doesn't give us access to the matrix values
-      # https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability
-      # this means we pass in inputs.endtoend or inputs.js from the module yml file, and then have this on
-      # jobs.tests.if: ${{ matrix.endtoend && inputs.endtoend }} - in order to not create the endtoend tests for modules
-      # that don't need them
-      # 3. (will probably do this) dynamic matrix - github-actions doesn't allow dynamic matrix without quite a bit of hacking which involves
-      # having the matrix defined in a seperate json file and then read with fromJson() it becomes hard to read e.g
-      # https://github.com/frezbo/dockerfiles/blob/6701b8cffc3b3628ad72b541d2c36ac87e1e9b8f/.github/workflows/ci.yml
       # matrix:
       #   include:
       #     # behat test works - TODO: switch to serve.php TODO: change to endtoend for abstraction
@@ -155,7 +157,7 @@ jobs:
 
       - name: Install PHP - phpunit coverage test
         uses: shivammathur/setup-php@v2
-        if: ${{ matrix.phpcoverage == true }}
+        if: ${{ matrix.phpcoverage == true && inputs.run_phpcoverage }}
         with:
           php-version: ${{ matrix.php }}
           extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, xdebug, zip
@@ -168,9 +170,8 @@ jobs:
       # This is kind of slow at around 44 seconds, it's only used because there are
       # issues apt installing libapache2-mod-php which is needed for behat
       - name: Install PHP - behat test
-        if: ${{ matrix.behat == true }}
+        if: ${{ matrix.endtoend == true  && inputs.run_endtoend }}
         run: |
-          if [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
           # Make all php versions other than the current main version available
           sudo apt update && sudo sudo apt install -y software-properties-common
           sudo add-apt-repository -y ppa:ondrej/php
@@ -190,7 +191,7 @@ jobs:
 
       - name: Configure PHP
         run: |
-          if [ ${{ matrix.behat == true }} ] && [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
+          if [ ! $(which php) ]; then echo "PHP not installed, skipping" && exit 0; fi
           sudo sh -c "echo 'memory_limit = 8196M' >> /etc/php/${{ matrix.php }}/cli/php.ini"
           if [ -f /etc/php/${{ matrix.php }}/apache2/php.ini ]; then
             sudo sh -c "echo 'memory_limit = 8196M' >> /etc/php/${{ matrix.php }}/apache2/php.ini"
@@ -198,9 +199,8 @@ jobs:
           echo "PHP has been configured"
 
       - name: Configure apache - behat test
-        if: ${{ matrix.behat == true }}
+        if: ${{ matrix.endtoend == true  && inputs.run_endtoend }}
         run: |
-          if [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
           # apache2 is installed and running by default in ubuntu
           # update dir.conf to use index.php as the primary index doc
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/dir.conf
@@ -222,8 +222,8 @@ jobs:
 
       - name: Composer
         run: |
+          if [ ! $(which php) ]; then echo "PHP not installed, skipping" && exit 0; fi
           # Update composer.json and install dependencies
-          if [ ${{ matrix.behat == true }} ] && [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
           # github.base_ref is only available on pull-requests and is the target branch
           # github.ref is used for regular branch builds such as crons
           BRANCH=$(php -r "echo preg_replace('#^.+/#', '', '${{ github.base_ref }}'?:'${{ github.ref }}');")
@@ -244,7 +244,6 @@ jobs:
       - name: Prepare Silverstripe
         run: |
           # Add .env file
-          if [ ${{ matrix.behat == true }} ] && [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/.env
           # Surprisingly we probably don't want to dev/build flush here
           # vendor/bin/sake dev/build flush=1
@@ -255,15 +254,16 @@ jobs:
           # dir=\$(ls /tmp | grep silverstripe-cache | head -1); if [ "\$dir" ]; then rm -rf /tmp/\$dir; fi
 
       - name: phpunit
-        if: ${{ matrix.phpunit == true }}
+        if: ${{ matrix.phpunit == true && inputs.run_phpunit }}
         run: |
           vendor/bin/phpunit --verbose
           echo "Passed"
 
       - name: behat
-        if: ${{ matrix.behat == true }}
+        if: ${{ matrix.endtoend == true && inputs.run_endtoend }}
         run: |
-          if [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
+          # Run behat tests
+          if [ ! -f behat.yml ]; then echo "behat.yml missing" && exit 1; fi
           # this script will update behat.yml to work with headless chrome
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/behat-headless.yml
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/behat.php
@@ -275,9 +275,10 @@ jobs:
           echo "Passed"
 
       - name: js
-        if: ${{ matrix.js == true }}
+        if: ${{ matrix.js == true && inputs.run_js }}
         run: |
-          if [ ! -f package.json ]; then echo "package.json not present, skipping" && exit 0; fi
+          # Run yarn test etc
+          if [ ! -f package.json ]; then echo "package.json missing" && exit 1; fi
           wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh
           php -r "if (hash_file('sha384', 'install.sh') === 'dd4b116a7452fc3bb8c0e410ceac27e19b0ba0f900fe2f91818a95c12e92130fdfb8170fec170b9fb006d316f6386f2b') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('install.sh'); } echo PHP_EOL;"
           if [ ! -f install.sh ]; then echo "Cannot install nvm" && exit 1; fi
@@ -305,7 +306,7 @@ jobs:
           echo "Passed"
 
       - name: phplint
-        if: ${{ matrix.phplint == true }}
+        if: ${{ matrix.phplint == true && inputs.run_phplint }}
         run: |
           if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" && exit 1; fi
           vendor/bin/phpcs
@@ -320,7 +321,7 @@ jobs:
           echo "Passed"
 
       - name: phpcoverage
-        if: ${{ matrix.phpcoverage == true }}
+        if: ${{ matrix.phpcoverage == true && inputs.run_phpcoverage }}
         run: |
           curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import
           curl -Os https://uploader.codecov.io/latest/codecov-linux
