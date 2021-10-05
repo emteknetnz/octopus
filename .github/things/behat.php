@@ -2,7 +2,7 @@
 
 // use .github/things/behat.yml as the main behat.yml file,
 // though use 'suites' from the module behat.yml
-$a = file_get_contents('.github/things/behat.yml');
+$a = file_get_contents('behat-headless.yml');
 $b = file_get_contents('behat.yml');
 preg_match("#(?s)  suites:(.+?)\n  [a-z]#", $b, $m);
 if (!$m) {

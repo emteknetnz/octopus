@@ -159,9 +159,15 @@ jobs:
           if [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
           # apache2 is installed and running by default in ubuntu
           # update dir.conf to use index.php as the primary index doc
-          sudo cp .github/things/dir.conf /etc/apache2/mods-enabled/dir.conf
+          wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/dir.conf
+          sudo cp dir.conf /etc/apache2/mods-enabled/dir.conf
+          rm dir.conf
           # this script will create a 000-default.conf file with the pwd as the DocumentRoot
-          php .github/things/apache2.php
+          wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/000-default.conf
+          wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/apache2.php
+          php apache2.php
+          rm apache2.php
+          rm 000-default.conf
           sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
           sudo a2enmod rewrite
           # run apache as 'runner:docker' instead of 'www-data:www-data'
@@ -194,7 +200,7 @@ jobs:
       - name: Prepare Silverstripe
         run: |
           if [ ${{ matrix.behat == true }} ] && [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
-          cp .github/things/.env .env
+          wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/.env
           vendor/bin/sake dev/build flush=1
 
       - name: phpunit
@@ -208,7 +214,11 @@ jobs:
         run: |
           if [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
           # this script will update behat.yml to work with headless chrome
-          php .github/things/behat.php
+          wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/behat-headless.yml
+          wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/behat.php
+          php behat.php
+          rm behat.php
+          rm behat-headless.yml
           nohup sh -c "chromedriver --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat octopus
           echo "Passed"
