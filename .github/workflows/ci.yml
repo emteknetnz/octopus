@@ -185,7 +185,7 @@ jobs:
             composer require silverstripe/cow:dev-master --no-update --prefer-dist
           fi
           if [ "${{ inputs.require_extra }}" != "" ]; then
-            composer require -"${{ inputs.require_extra }}" --no-update --prefer-dist
+            composer require "${{ inputs.require_extra }}" --no-update --prefer-dist
           fi
           cp composer.json artifacts
           composer update --prefer-dist --no-interaction --no-progress
