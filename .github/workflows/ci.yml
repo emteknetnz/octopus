@@ -1,7 +1,7 @@
 # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions
 # https://docs.github.com/en/actions/learn-github-actions/reusing-workflows
 
-name: tests
+name: ci
 
 # on:
 #   push:
@@ -13,34 +13,34 @@ name: tests
 
 on:
   workflow_call:
-    # TODO: could possibly get rid of inputs? instead just see if files exists e.g. if behat.yml then run endtoend
-    # does mean that behat job will be created in modules that don't have behat though .. probably keep then?
-    inputs:
-      endtoend:
-        type: boolean
-        #description: "behat"
-        required: false
-        default: false
-      js:
-        type: boolean
-        #description: "yarn build diff, yarn lint, yarn test"
-        required: false
-        default: false
-      phpcoverage:
-        type: boolean
-        #description: "codecov"
-        required: false
-        default: true
-      phplint:
-        type: boolean
-        #description: "phpcs, phpstan (optional), cow schema validate"
-        required: false
-        default: true
-      phpunit:
-        type: boolean
-        #descrtiption: "phpunit"
-        required: false
-        default: true
+#     # TODO: could possibly get rid of inputs? instead just see if files exists e.g. if behat.yml then run endtoend
+#     # does mean that behat job will be created in modules that don't have behat though .. probably keep then?
+#     inputs:
+#       endtoend:
+#         type: boolean
+#         #description: "behat"
+#         required: false
+#         default: false
+#       js:
+#         type: boolean
+#         #description: "yarn build diff, yarn lint, yarn test"
+#         required: false
+#         default: false
+#       phpcoverage:
+#         type: boolean
+#         #description: "codecov"
+#         required: false
+#         default: true
+#       phplint:
+#         type: boolean
+#         #description: "phpcs, phpstan (optional), cow schema validate"
+#         required: false
+#         default: true
+#       phpunit:
+#         type: boolean
+#         #descrtiption: "phpunit"
+#         required: false
+#         default: true
 
 jobs:
 
@@ -82,8 +82,6 @@ jobs:
           # - php: '7.4'
           #   phpstan: true
 
-    if: ${{ inputs.phpunit || inputs.phplint }}
-
     # TODO:
     # - [ ] composer REQUIRE_GRAPHQL, REQUIRE_EXTRA, etc
     # - [ ] PDO
@@ -123,6 +121,7 @@ jobs:
       - name: Install PHP - behat test
         if: ${{ matrix.behat == true }}
         run: |
+          if [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
           # Make all php versions other than the current main version available
           sudo apt update && sudo sudo apt install -y software-properties-common
           sudo add-apt-repository -y ppa:ondrej/php
@@ -142,6 +141,7 @@ jobs:
 
       - name: Configure PHP
         run: |
+          if [ ${{ matrix.behat == true }} ] && [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
           sudo sh -c "echo 'memory_limit = 8196M' >> /etc/php/${{ matrix.php }}/cli/php.ini"
           if [ -f /etc/php/${{ matrix.php }}/apache2/php.ini ]; then
             sudo sh -c "echo 'memory_limit = 8196M' >> /etc/php/${{ matrix.php }}/apache2/php.ini"
@@ -151,6 +151,7 @@ jobs:
       - name: Configure apache - behat test
         if: ${{ matrix.behat == true }}
         run: |
+          if [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
           # apache2 is installed and running by default in ubuntu
           # update dir.conf to use index.php as the primary index doc
           sudo cp .github/things/dir.conf /etc/apache2/mods-enabled/dir.conf
@@ -166,6 +167,7 @@ jobs:
 
       - name: Composer
         run: |
+          if [ ${{ matrix.behat == true }} ] && [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
           # github.base_ref is only available on pull-requests and is the target branch
           # github.ref is used for regular branch builds such as crons
           BRANCH=$(php -r "echo preg_replace('#^.+/#', '', '${{ github.base_ref }}'?:'${{ github.ref }}');")
@@ -182,6 +184,7 @@ jobs:
 
       - name: Prepare Silverstripe
         run: |
+          if [ ${{ matrix.behat == true }} ] && [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
           cp .github/things/.env .env
           vendor/bin/sake dev/build flush=1
 
@@ -194,6 +197,7 @@ jobs:
       - name: behat
         if: ${{ matrix.behat == true }}
         run: |
+          if [ ! -f behat.yml ]; then echo "behat.yml not present, skipping" && exit 0; fi
           # this script will update behat.yml to work with headless chrome
           php .github/things/behat.php
           nohup sh -c "chromedriver --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
@@ -203,6 +207,7 @@ jobs:
       - name: js
         if: ${{ matrix.js == true }}
         run: |
+          if [ ! -f package.json ]; then echo "package.json not present, skipping" && exit 0; fi
           wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh
           php -r "if (hash_file('sha384', 'install.sh') === 'dd4b116a7452fc3bb8c0e410ceac27e19b0ba0f900fe2f91818a95c12e92130fdfb8170fec170b9fb006d316f6386f2b') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('install.sh'); } echo PHP_EOL;"
           if [ ! -f install.sh ]; then echo "Cannot install nvm" && exit 1; fi
@@ -232,7 +237,6 @@ jobs:
       - name: phplint
         if: ${{ matrix.phplint == true }}
         run: |
-          # phpcs is required
           if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" && exit 1; fi
           vendor/bin/phpcs
           # phpstan is optional
