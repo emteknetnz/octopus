@@ -47,6 +47,7 @@ on:
 
 jobs:
 
+  # ideally would move this somewhere else (still up top of file) so it wouldn't show as a skipped job every run
   metadata:
     runs-on: ubuntu-latest
     if: ${{ github.action == 'never' }}

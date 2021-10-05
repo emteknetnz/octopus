@@ -8,8 +8,10 @@ $ci_matrix = $y['jobs']['metadata']['strategy']['matrix']['include'];
 $ci_inputs = $y['onx']['workflow_call']['inputs'];
 $module_inputs = [];
 foreach (explode("\n", file_get_contents('module_inputs.txt')) as $line) {
-    list($input, $b) = preg_split('#=#', $line);
-    $module_inputs[$input] = $b;
+    $a = preg_split('#=#', $line);
+    if (isset($a[1])) {
+        $module_inputs[$a[0]] = $a[1];
+    }    
 }
 
 $tests = [];
