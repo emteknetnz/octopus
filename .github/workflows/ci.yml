@@ -115,8 +115,8 @@ jobs:
           echo "run_phpunit:${{ inputs.run_phpunit }}" >> inputs.yml          
           echo "default_jobs" >> inputs.yml
           echo "${{ inputs.default_jobs }}" >> inputs.yml
-          echo "custom_jobs:" >> inputs.yml
-          echo "${{ inputs.custom_jobs }}" >> inputs.yml
+          echo "extra_jobs:" >> inputs.yml
+          echo "${{ inputs.extra_jobs }}" >> inputs.yml
           cat inputs.yml
           MATRIX_JSON=$(php matrix.php)
           echo "::set-output name=matrix::${MATRIX_JSON}"
