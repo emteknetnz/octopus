@@ -132,15 +132,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install libapache2-mod-php before php - endtoend test
-        if: ${{ matrix.endtoend == true  && inputs.run_endtoend }}
-        run: |
-          sudo apt install -y software-properties-common
-          sudo add-apt-repository -y ppa:ondrej/php
-          sudo add-apt-repository -y ppa:ondrej/apache2
-          sudo apt update
-          sudo apt install libapache2-mod-php${{ matrix.php }}
-
       - name: Install PHP - regular
         uses: shivammathur/setup-php@v2
         # if: ${{ matrix.endtoend != true && matrix.phpcoverage != true }}
@@ -158,6 +149,17 @@ jobs:
           extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, xdebug, zip
           tools: composer:v2
           coverage: xdebug
+
+     # Doing this BEFORE shivammathur/setup-php means that step can no longer use cached versions
+     # and is runs much slower.  Full manual install is faster at that point
+     - name: Install libapache2-mod-php - endtoend test
+        if: ${{ matrix.endtoend == true  && inputs.run_endtoend }}
+        run: |
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository -y ppa:ondrej/php
+          sudo add-apt-repository -y ppa:ondrej/apache2
+          sudo apt update
+          sudo apt install libapache2-mod-php${{ matrix.php }}
 
       # TODO: probably don't need apache, just revert to using serve.php for behat
       # would need to check if cms installed?  it's a different bootstrap to what's in behat.yml
@@ -254,7 +256,7 @@ jobs:
           vendor/bin/phpunit --verbose
           echo "Passed"
 
-      - name: behat
+      - name: endtoend
         if: ${{ matrix.endtoend == true && inputs.run_endtoend }}
         run: |
           # Run behat tests
@@ -266,7 +268,7 @@ jobs:
           rm behat.php
           rm behat-headless.yml
           nohup sh -c "chromedriver --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
-          vendor/bin/behat octopus
+          vendor/bin/behat
           echo "Passed"
 
       - name: js
