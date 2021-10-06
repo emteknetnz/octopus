@@ -195,7 +195,7 @@ jobs:
           composer require silverstripe/recipe-testing:^1 --no-update --prefer-dist
           # TODO: tmp until behat-extension PR merged
           if [ ${{ matrix.endtoend }} ]; then
-            composer config repositories.x1 '{\"type\": \"vcs\", \"url\": \"git@github.com:silverstripe/silverstripe-behat-extension.git\"}'
+            composer config repositories.x1 '{"type": "vcs", "url": "git@github.com:silverstripe/silverstripe-behat-extension.git"}'
             composer require --no-update 'silverstripe/behat-extension:dev-pulls/4/skip-mfa as 4.5.0'
           fi
           if [ ${{ matrix.phplinting }} ]; then
