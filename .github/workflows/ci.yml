@@ -151,13 +151,10 @@ jobs:
     steps:
       - name: Preparation
         run: |
+          # Create artifacts directory
           if [ -d artifacts ]; then mkdir artifacts; fi
-          #ARTIFACTS_SUBPATH=$(php -r "echo strtolower(preg_replace('#[ \-\.]+#', '_', '${{ job.tests.name }}'));")
-          #ARTIFACTS_PATH="artifacts/${ARTIFACTS_SUBPATH}"
-          #mkdir ${ARTIFACTS_PATH}
-          #echo ${ARTIFACTS_PATH}
-          #echo "::set-output name=artifacts_path::${ARTIFACTS_PATH}"
-          echo ${{ env.artifacts_path }}
+          echo "Artifcats will be saved to ${{ env.artifacts_path }}"
+          mkdir ${{ env.artifacts_path }}
       
       - name: Checkout code
         uses: actions/checkout@v2
