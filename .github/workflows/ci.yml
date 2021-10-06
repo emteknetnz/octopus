@@ -152,9 +152,9 @@ jobs:
       - name: Preparation
         run: |
           # Create artifacts directory
-          if [ -d artifacts ]; then mkdir artifacts; fi
-          echo "Artifcats will be saved to ${{ env.artifacts_path }}"
+          if [ ! -d artifacts ]; then mkdir artifacts; fi
           mkdir ${{ env.artifacts_path }}
+          echo "Artifacts will be saved to ${{ env.artifacts_path }}"
       
       - name: Checkout code
         uses: actions/checkout@v2
