@@ -254,13 +254,7 @@ jobs:
           if [ "${{ inputs.require_extra }}" != "" ]; then
             composer require "${{ inputs.require_extra }}" --no-update --prefer-dist
           fi
-          # artifacts directory can only be created here, as composer will remove any existing artifact directory
-          if [ ! -d artifacts ]; then mkdir artifacts; fi
-          mkdir ${{ env.artifacts_path }}
-          echo "Artifacts will be saved to ${{ env.artifacts_path }}"
-          cp composer.json ${{ env.artifacts_path }}
           composer update --prefer-dist --no-interaction --no-progress
-          cp composer.lock ${{ env.artifacts_path }}
 
       - name: Prepare Silverstripe
         run: |
@@ -356,6 +350,15 @@ jobs:
           # TODO: uncomment so that it uploads
           # ./codecov-linux -f coverage.xml;
           # echo "coverage.xml generated and uploaded to codecov"
+
+      - name: Prepare artifacts
+        run: |
+          # artifacts directory must be created after composer install as it would remove the artifacts directory
+          mkdir artifacts
+          mkdir ${{ env.artifacts_path }}
+          cp composer.json ${{ env.artifacts_path }}
+          cp composer.lock ${{ env.artifacts_path }}
+          cp behat.yml ${{ env.artifacts_path }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
