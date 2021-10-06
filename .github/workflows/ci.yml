@@ -144,6 +144,7 @@ jobs:
       fail-fast: false
 
     env:
+      artifacts_name: php${{ matrix.php }}_${{ matrix.phpunit && 'phpunit' || '' }}${{ matrix.endtoend && 'endtoend' || '' }}${{ matrix.js && 'js' || '' }}${{ matrix.phpcoverage && 'phpcoverage' || '' }}${{ matrix.phplinting && 'phplinting' || '' }}
       artifacts_path: artifacts/php${{ matrix.php }}_${{ matrix.phpunit && 'phpunit' || '' }}${{ matrix.endtoend && 'endtoend' || '' }}${{ matrix.js && 'js' || '' }}${{ matrix.phpcoverage && 'phpcoverage' || '' }}${{ matrix.phplinting && 'phplinting' || '' }}
 
     name: PHP ${{ matrix.php }}${{ matrix.phpunit && ' - phpunit' || '' }}${{ matrix.endtoend && ' - endtoend' || '' }}${{ matrix.js && ' - js' || '' }}${{ matrix.phpcoverage && ' - phpcoverage' || '' }}${{ matrix.phplinting && ' - phplinting' || '' }}
@@ -351,9 +352,9 @@ jobs:
           # ./codecov-linux -f coverage.xml;
           # echo "coverage.xml generated and uploaded to codecov"
 
-      - name: Prepare artifacts
+      - name: Copy artifacts
         run: |
-          # artifacts directory must be created after composer install as it would remove the artifacts directory
+          # Artifacts directory must be created after composer install as it would remove the artifacts directory
           mkdir artifacts
           mkdir ${{ env.artifacts_path }}
           cp composer.json ${{ env.artifacts_path }}
@@ -364,5 +365,5 @@ jobs:
         uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: ${{ env.artifacts_path }}
+          name: ${{ env.artifacts_name }}
           path: ${{ env.artifacts_path }}
