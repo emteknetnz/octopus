@@ -126,10 +126,6 @@ jobs:
     outputs:
       matrix: ${{ steps.tests.outputs.artifacts_path }}
 
-    env:
-      # this will be set in the 'Preparation' step
-      artifacts_path: ''
-
     services:
       mysql:
         image: mysql:5.7
@@ -153,9 +149,10 @@ jobs:
       - name: Preparation
         run: |
           if [ -d artifacts ]; then mkdir artifacts; fi
-          ARTIFACTS_SUBPATH=$(php -r "echo strtolower(preg_replace('#[ \-\.]+#', '_', '${{ matrix.name }}'));")
+          ARTIFACTS_SUBPATH=$(php -r "echo strtolower(preg_replace('#[ \-\.]+#', '_', '${{ job.name }}'));")
           ARTIFACTS_PATH="artifacts/${ARTIFACTS_SUBPATH}"
           mkdir ${ARTIFACTS_PATH}
+          echo ${ARTIFACTS_PATH}
           echo "::set-output name=artifacts_path::${ARTIFACTS_PATH}"
           echo ${{ steps.tests.outputs.artifacts_path }}
       
