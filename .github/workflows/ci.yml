@@ -195,11 +195,6 @@ jobs:
           # TODO: hardecoded version of installer
           composer require silverstripe/installer:4.9.x-dev --no-update --prefer-dist
           composer require silverstripe/recipe-testing:^1 --no-update --prefer-dist
-          # TODO: tmp until behat-extension PR merged
-          if [ ${{ matrix.endtoend }} ]; then
-            composer config repositories.x1 '{"type": "vcs", "url": "https://github.com/silverstripe/silverstripe-behat-extension.git"}'
-            composer require --no-update 'silverstripe/behat-extension:dev-pulls/4/skip-mfa as 4.5.0'
-          fi
           if [ ${{ matrix.phplinting }} ]; then
             composer require silverstripe/cow:dev-master --no-update --prefer-dist
           fi
@@ -207,6 +202,13 @@ jobs:
             composer require "${{ inputs.require_extra }}" --no-update --prefer-dist
           fi
           composer update --prefer-dist --no-interaction --no-progress
+          # TODO: tmp until behat-extension PR merged
+          # Was having issues with 'github authentication required when adding cc's repo even with the https url
+          # so doing this wacky way instead which is much faster anyway
+          if [ ${{ matrix.endtoend }} ]; then
+            wget https://raw.githubusercontent.com/creative-commoners/silverstripe-behat-extension/pulls/4/skip-mfa/src/Context/BasicContext.php
+            cp BasicContext.php vendor/silverstripe/behat-extension/src/Context/BasicContext.php
+          fi
 
       - name: Preparation
         run: |
@@ -303,11 +305,12 @@ jobs:
           # echo "coverage.xml generated and uploaded to codecov"
 
       - name: Copy artifacts
+        if: always()
         run: |
           # Copy selected files to the artifacts dir
-          cp composer.json artifacts
-          cp composer.lock artifacts
-          if [ ${{ matrix.endtoend }} ]; then cp behat.yml artifacts; fi
+          if [ -f composer.json ]; then cp composer.json artifacts; fi
+          if [ -f composer.lock ]; then cp composer.lock artifacts; fi
+          if [ "${{ matrix.endtoend }}" == "true" && -f behat.yml ]; then cp behat.yml artifacts; fi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
