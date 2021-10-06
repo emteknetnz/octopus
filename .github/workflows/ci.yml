@@ -124,7 +124,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      matrix: ${{ steps.tests.outputs.artifacts_path }}
+      matrix: ${{ env.artifacts_path }}
 
     services:
       mysql:
@@ -143,18 +143,21 @@ jobs:
       # set fail-fast to false prevent one job from cancelling other jobs
       fail-fast: false
 
+    env:
+      artifacts_path: artifacts/php${{ matrix.php }}_${{ matrix.phpunit && 'phpunit' || '' }}${{ matrix.endtoend && 'endtoend' || '' }}${{ matrix.js && 'js' || '' }}${{ matrix.phpcoverage && 'phpcoverage' || '' }}${{ matrix.phplinting && 'phplinting' || '' }}
+
     name: PHP ${{ matrix.php }}${{ matrix.phpunit && ' - phpunit' || '' }}${{ matrix.endtoend && ' - endtoend' || '' }}${{ matrix.js && ' - js' || '' }}${{ matrix.phpcoverage && ' - phpcoverage' || '' }}${{ matrix.phplinting && ' - phplinting' || '' }}
 
     steps:
       - name: Preparation
         run: |
           if [ -d artifacts ]; then mkdir artifacts; fi
-          ARTIFACTS_SUBPATH=$(php -r "echo strtolower(preg_replace('#[ \-\.]+#', '_', '${{ job.name }}'));")
-          ARTIFACTS_PATH="artifacts/${ARTIFACTS_SUBPATH}"
-          mkdir ${ARTIFACTS_PATH}
-          echo ${ARTIFACTS_PATH}
-          echo "::set-output name=artifacts_path::${ARTIFACTS_PATH}"
-          echo ${{ steps.tests.outputs.artifacts_path }}
+          #ARTIFACTS_SUBPATH=$(php -r "echo strtolower(preg_replace('#[ \-\.]+#', '_', '${{ job.tests.name }}'));")
+          #ARTIFACTS_PATH="artifacts/${ARTIFACTS_SUBPATH}"
+          #mkdir ${ARTIFACTS_PATH}
+          #echo ${ARTIFACTS_PATH}
+          #echo "::set-output name=artifacts_path::${ARTIFACTS_PATH}"
+          echo ${{ env.artifacts_path }}
       
       - name: Checkout code
         uses: actions/checkout@v2
@@ -261,9 +264,9 @@ jobs:
           if [ "${{ inputs.require_extra }}" != "" ]; then
             composer require "${{ inputs.require_extra }}" --no-update --prefer-dist
           fi
-          cp composer.json ${{ steps.tests.outputs.artifacts_path }}
+          cp composer.json ${{ env.artifacts_path }}
           composer update --prefer-dist --no-interaction --no-progress
-          cp composer.lock ${{ steps.tests.outputs.artifacts_path }}
+          cp composer.lock ${{ env.artifacts_path }}
 
       - name: Prepare Silverstripe
         run: |
@@ -294,7 +297,7 @@ jobs:
           php behat.php
           rm behat.php
           rm behat-headless.yml
-          cp behat.yml ${{ steps.tests.outputs.artifacts_path }}
+          cp behat.yml ${{ env.artifacts_path }}
           nohup sh -c "chromedriver --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat
           echo "Passed"
@@ -365,4 +368,4 @@ jobs:
         if: always()
         with:
           name: artifacts
-          path: ${{ steps.tests.outputs.artifacts_path }}
+          path: ${{ env.artifacts_path }}
