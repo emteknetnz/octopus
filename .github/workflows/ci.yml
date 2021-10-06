@@ -114,7 +114,7 @@ jobs:
           echo "run_phplinting:${{ inputs.run_phplinting }}" >> inputs.yml
           echo "run_phpunit:${{ inputs.run_phpunit }}" >> inputs.yml          
           echo "default_jobs" >> inputs.yml
-          echo "${{ inputs.default_jobs }}"" >> inputs.yml
+          echo "${{ inputs.default_jobs }}" >> inputs.yml
           echo "custom_jobs:" >> inputs.yml
           echo "${{ inputs.custom_jobs }}" >> inputs.yml
           cat inputs.yml
