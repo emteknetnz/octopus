@@ -38,27 +38,22 @@ on:
         default: 'none'
       run_endtoend:
         type: boolean
-        #description: "behat"
         required: false
         default: false
       run_js:
         type: boolean
-        #description: "yarn build diff, yarn lint, yarn test"
         required: false
         default: false
       run_phpcoverage:
         type: boolean
-        #description: "codecov"
         required: false
         default: true
       run_phplinting:
         type: boolean
-        #description: "phpcs, phpstan (optional), cow schema validate"
         required: false
         default: true
       run_phpunit:
         type: boolean
-        #descrtiption: "phpunit"
         required: false
         default: true
       composer_require_extra:
@@ -67,28 +62,6 @@ on:
         default: ''
 
 jobs:
-
-  # ideally would move this somewhere else (still up top of file) so it wouldn't show as a skipped job every run
-  # metadata:
-  #   runs-on: ubuntu-latest
-  #   if: ${{ github.action == 'never' }}
-  #   steps:
-  #     - run: |
-  #        # Do nothing
-  #   strategy:
-  #     matrix:
-  #       include:
-  #         # phpcoverage limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
-  #         - php: '7.3'
-  #           endtoend: true
-  #         - php: '7.4'
-  #           js: true
-  #         - php: '7.3'
-  #           phpcoverage: true
-  #         - php: '7.4'
-  #           phplinting: true
-  #         - php: '7.4'
-  #           phpunit: true
 
   # used to generate a dynamic jobs matrix
   genmatrix:
@@ -135,25 +108,24 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     needs: genmatrix
+
     strategy:
-      matrix: ${{fromJson(needs.genmatrix.outputs.matrix)}}
       # set fail-fast to false prevent one job from cancelling other jobs
       fail-fast: false
+      matrix: ${{fromJson(needs.genmatrix.outputs.matrix)}}
 
     env:
       artifacts_name: php${{ matrix.php }}_${{ matrix.phpunit && 'phpunit' || '' }}${{ matrix.endtoend && 'endtoend' || '' }}${{ matrix.js && 'js' || '' }}${{ matrix.phpcoverage && 'phpcoverage' || '' }}${{ matrix.phplinting && 'phplinting' || '' }}
-      # artifacts_path: artifacts/php${{ matrix.php }}_${{ matrix.phpunit && 'phpunit' || '' }}${{ matrix.endtoend && 'endtoend' || '' }}${{ matrix.js && 'js' || '' }}${{ matrix.phpcoverage && 'phpcoverage' || '' }}${{ matrix.phplinting && 'phplinting' || '' }}
 
     name: PHP ${{ matrix.php }}${{ matrix.phpunit && ' - phpunit' || '' }}${{ matrix.endtoend && ' - endtoend' || '' }}${{ matrix.js && ' - js' || '' }}${{ matrix.phpcoverage && ' - phpcoverage' || '' }}${{ matrix.phplinting && ' - phplinting' || '' }}
 
-    steps:      
+    steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Install PHP
         uses: shivammathur/setup-php@v2
-        # if: ${{ matrix.endtoend != true && matrix.phpcoverage != true }}
-        if: ${{ matrix.phpcoverage != true }}
+        if: ${{ !matrix.phpcoverage }}
         with:
           php-version: ${{ matrix.php }}
           extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, zip
@@ -161,37 +133,12 @@ jobs:
 
       - name: Install PHP - PHP coverage test
         uses: shivammathur/setup-php@v2
-        if: ${{ matrix.phpcoverage == true && inputs.run_phpcoverage }}
+        if: ${{ matrix.phpcoverage }}
         with:
           php-version: ${{ matrix.php }}
           extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, xdebug, zip
           tools: composer:v2
           coverage: xdebug
-
-      # TODO: probably don't need apache, just revert to using serve.php for behat
-      # would need to check if cms installed?  it's a different bootstrap to what's in behat.yml
-      # For behat, install php manually
-      # This is kind of slow at around 44 seconds, it's only used because there are
-      # issues apt installing libapache2-mod-php which is needed for behat
-      # - name: Install PHP - behat test
-      #   if: ${{ matrix.endtoend == true && inputs.run_endtoend }}
-      #   run: |
-      #     # Make all php versions other than the current main version available
-      #     sudo apt update && sudo apt install -y software-properties-common
-      #     sudo add-apt-repository -y ppa:ondrej/php
-      #     sudo add-apt-repository -y ppa:ondrej/apache2
-      #     sudo apt update
-      #     sudo apt install libapache2-mod-php${{ matrix.php }} php${{ matrix.php }} php${{ matrix.php }}-cli php${{ matrix.php }}-curl  php${{ matrix.php }}-dom php${{ matrix.php }}-gd php${{ matrix.php }}-intl php${{ matrix.php }}-json php${{ matrix.php }}-ldap php${{ matrix.php }}-mbstring php${{ matrix.php }}-mysql php${{ matrix.php }}-tidy php${{ matrix.php }}-xdebug php${{ matrix.php }}-zip tidy
-      #     # This this verison of PHP instead of the default ubuntu php8.0 install
-      #     sudo rm /etc/alternatives/php
-      #     sudo ln -s /usr/bin/php${{ matrix.php }} /etc/alternatives/php
-      #     # Install composer
-      #     php -r "copy('https://composer.github.io/installer.sig', 'installer.sig');"
-      #     php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-      #     php -r "if (hash_file('sha384', 'composer-setup.php') === file_get_contents('installer.sig')) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
-      #     if [ -f composer-setup.php ]; then php composer-setup.php && rm composer-setup.php; fi
-      #     rm installer.sig
-      #     sudo mv composer.phar /usr/local/bin/composer
 
       - name: Configure PHP
         run: |
@@ -203,7 +150,7 @@ jobs:
           echo "PHP has been configured"
 
       - name: Install additional requirements - endtoend test
-        if: ${{ matrix.endtoend == true && inputs.run_endtoend }}
+        if: ${{ matrix.endtoend == true }}
         run: |
           sudo apt install -y software-properties-common
           sudo add-apt-repository -y ppa:ondrej/php
@@ -212,7 +159,7 @@ jobs:
           sudo apt install libapache2-mod-php${{ matrix.php }}
 
       - name: Configure apache - endtoend test
-        if: ${{ matrix.endtoend == true && inputs.run_endtoend }}
+        if: ${{ matrix.endtoend }}
         run: |
           # apache2 is installed and running by default in ubuntu
           # update dir.conf to use index.php as the primary index doc
@@ -246,6 +193,11 @@ jobs:
           # TODO: hardecoded version of installer
           composer require silverstripe/installer:4.9.x-dev --no-update --prefer-dist
           composer require silverstripe/recipe-testing:^1 --no-update --prefer-dist
+          # TODO: tmp until behat-extension PR merged
+          if [ ${{ matrix.endtoend }} ]; then
+            composer config repositories.x1 '{\"type\": \"vcs\", \"url\": \"git@github.com:silverstripe/silverstripe-behat-extension.git\"}'
+            composer require --no-update 'silverstripe/behat-extension:dev-pulls/4/skip-mfa as 4.5.0'
+          fi
           if [ ${{ matrix.phplinting }} ]; then
             composer require silverstripe/cow:dev-master --no-update --prefer-dist
           fi
@@ -254,26 +206,26 @@ jobs:
           fi
           composer update --prefer-dist --no-interaction --no-progress
 
-      - name: Prepare Silverstripe
+      - name: Preparation
         run: |
-          # Add .env file
+          # Add .env file and create artifacts directory
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/.env
-          # Surprisingly we probably don't want to dev/build flush here
-          # vendor/bin/sake dev/build flush=1
-          # I was having issues with a unit test getting this issue
+          # Artifacts directory must be created after composer install as it would remove the artifacts directory
+          mkdir artifacts
+          # Shouldn't dev/build flush here
+          # There were issues with a unit test getting the following issue
           # Identifier name 'SilverStripe_CampaignAdmin_Tests_AddToCampaignValidatorTest_TestObject' is too long
-          # Which is possibly to do with the /tmp/silverstripe-cache-php7.4.xyz dir being out of sync with TestOnly objects
-          # If we really need to dev/build flush here (perhaps just for visibility) then we could delete the silverstripe-cache dir afterwards with
-          # dir=\$(ls /tmp | grep silverstripe-cache | head -1); if [ "\$dir" ]; then rm -rf /tmp/\$dir; fi
+          # Likely because the /tmp/silverstripe-cache-php7.4.xyz... dir being out of sync with TestOnly objects
+          # If dev/build flush is needed here then delete the silverstripe-cache dir afterwards
 
       - name: Tests - PHPUnit
-        if: ${{ matrix.phpunit == true && inputs.run_phpunit }}
+        if: ${{ matrix.phpunit }}
         run: |
           vendor/bin/phpunit --verbose
           echo "Passed"
 
       - name: Tests - End to end
-        if: ${{ matrix.endtoend == true && inputs.run_endtoend }}
+        if: ${{ matrix.endtoend == true }}
         run: |
           # Run behat tests
           if [ ! -f behat.yml ]; then echo "behat.yml missing" && exit 1; fi
@@ -288,7 +240,7 @@ jobs:
           echo "Passed"
 
       - name: Tests - JS
-        if: ${{ matrix.js == true && inputs.run_js }}
+        if: ${{ matrix.js }}
         run: |
           # Run yarn test etc
           if [ ! -f package.json ]; then echo "package.json missing" && exit 1; fi
@@ -319,7 +271,7 @@ jobs:
           echo "Passed"
 
       - name: Tests - PHP linting
-        if: ${{ matrix.phplinting == true && inputs.run_phplinting }}
+        if: ${{ matrix.phplinting }}
         run: |
           if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" && exit 1; fi
           vendor/bin/phpcs
@@ -327,14 +279,14 @@ jobs:
           if [ -f phpstan.neon.dist ]; then
             vendor/bin/phpstan analyse
           fi
-          # cow validation is also done here due to it being a tiny piece of work not meriting its own job
+          # cow validation is also done here due to it being a tiny piece of work not meriting its own step
           if [ -f .cow.json ]; then
             vendor/bin/cow schema:validate
           fi
           echo "Passed"
 
       - name: Tests - PHP Coverage
-        if: ${{ matrix.phpcoverage == true && inputs.run_phpcoverage }}
+        if: ${{ matrix.phpcoverage }}
         run: |
           curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import
           curl -Os https://uploader.codecov.io/latest/codecov-linux
@@ -350,15 +302,10 @@ jobs:
 
       - name: Copy artifacts
         run: |
-          # Artifacts directory must be created after composer install as it would remove the artifacts directory
-          mkdir artifacts
-          # mkdir ${{ env.artifacts_path }}
-          # cp composer.json ${{ env.artifacts_path }}
-          # cp composer.lock ${{ env.artifacts_path }}
-          # cp behat.yml ${{ env.artifacts_path }}
+          # Copy selected files to the artifacts dir
           cp composer.json artifacts
           cp composer.lock artifacts
-          cp behat.yml artifacts
+          if [ ${{ matrix.endtoend }} ]; then cp behat.yml artifacts; fi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
