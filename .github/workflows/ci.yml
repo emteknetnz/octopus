@@ -17,14 +17,31 @@ name: ci
 on:
   workflow_call:
     inputs:
+      # default/extra jobs must be multi-line string, as there's no support for type: array for inputs
+      default_jobs:
+        type: string
+        required: false
+        default: |
+          - php: 7.3
+            endtoend: true
+          - php: 7.4
+            js: true
+          - php: 7.3
+            phpcoverage: true
+          - php: 7.4
+            phplinting: true
+          - php: 7.4
+            phpunit: true
+      extra_jobs:
+        type: string
+        required: false
+        default: ''
+      # composer
       composer_require_extra:
         type: string
         required: false
         default: ''
-      custom_jobs:
-        type: array
-        required: false
-        default: []
+      # run tests
       run_endtoend:
         type: boolean
         #description: "behat"
@@ -54,26 +71,26 @@ on:
 jobs:
 
   # ideally would move this somewhere else (still up top of file) so it wouldn't show as a skipped job every run
-  metadata:
-    runs-on: ubuntu-latest
-    if: ${{ github.action == 'never' }}
-    steps:
-      - run: |
-         # Do nothing
-    strategy:
-      matrix:
-        include:
-          # phpcoverage limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
-          - php: '7.3'
-            endtoend: true
-          - php: '7.4'
-            js: true
-          - php: '7.3'
-            phpcoverage: true
-          - php: '7.4'
-            phplinting: true
-          - php: '7.4'
-            phpunit: true
+  # metadata:
+  #   runs-on: ubuntu-latest
+  #   if: ${{ github.action == 'never' }}
+  #   steps:
+  #     - run: |
+  #        # Do nothing
+  #   strategy:
+  #     matrix:
+  #       include:
+  #         # phpcoverage limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
+  #         - php: '7.3'
+  #           endtoend: true
+  #         - php: '7.4'
+  #           js: true
+  #         - php: '7.3'
+  #           phpcoverage: true
+  #         - php: '7.4'
+  #           phplinting: true
+  #         - php: '7.4'
+  #           phpunit: true
 
   # used to generate a dynamic jobs matrix
   genmatrix:
@@ -90,15 +107,17 @@ jobs:
         id: generate-matrix
         run: |
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/matrix.php
-          wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/workflows/ci.yml
-          touch inputs.txt
-          echo "run_endtoend=${{ inputs.run_endtoend }}" >> inputs.txt
-          echo "run_js=${{ inputs.run_js }}" >> inputs.txt
-          echo "run_phpcoverage=${{ inputs.run_phpcoverage }}" >> inputs.txt
-          echo "run_phplinting=${{ inputs.run_phplinting }}" >> inputs.txt
-          echo "run_phpunit=${{ inputs.run_phpunit }}" >> inputs.txt
-          echo "custom_jobs=${{ inputs.custom_jobs }}" >> inputs.txt
-          cat inputs.txt
+          touch inputs.yml
+          echo "run_endtoend:${{ inputs.run_endtoend }}" >> inputs.yml
+          echo "run_js:${{ inputs.run_js }}" >> inputs.yml
+          echo "run_phpcoverage:${{ inputs.run_phpcoverage }}" >> inputs.yml
+          echo "run_phplinting:${{ inputs.run_phplinting }}" >> inputs.yml
+          echo "run_phpunit:${{ inputs.run_phpunit }}" >> inputs.yml          
+          echo "default_jobs" >> inputs.yml
+          echo ${{ inputs.default_jobs }} >> inputs.yml
+          echo "custom_jobs:" >> inputs.yml
+          echo ${{ inputs.custom_jobs }} >> inputs.yml
+          cat inputs.yml
           MATRIX_JSON=$(php matrix.php)
           echo "::set-output name=matrix::${MATRIX_JSON}"
 
