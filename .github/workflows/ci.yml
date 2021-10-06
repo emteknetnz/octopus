@@ -18,6 +18,7 @@ on:
   workflow_call:
     inputs:
       # default/extra jobs must be multi-line string, as there's no support for type: array for inputs
+
       default_jobs:
         type: string
         required: false
@@ -194,6 +195,11 @@ jobs:
           # TODO: hardecoded version of installer
           composer require silverstripe/installer:4.9.x-dev --no-update --prefer-dist
           composer require silverstripe/recipe-testing:^1 --no-update --prefer-dist
+          # TODO: tmp until behat-extension PR merged
+          if [ ${{ matrix.endtoend }} ]; then
+            composer config repositories.x1 '{"type": "vcs", "url": "https://github.com/silverstripe/silverstripe-behat-extension.git"}'
+            composer require --no-update 'silverstripe/behat-extension:dev-pulls/4/skip-mfa as 4.5.0'
+          fi
           if [ ${{ matrix.phplinting }} ]; then
             composer require silverstripe/cow:dev-master --no-update --prefer-dist
           fi
