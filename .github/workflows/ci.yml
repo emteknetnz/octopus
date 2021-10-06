@@ -2,6 +2,16 @@
 # https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability
 # https://docs.github.com/en/actions/learn-github-actions/reusing-workflows
 
+# TODO:
+# - [ ] custom jobs matrix in inputs
+# - [ ] provision as inputs? e.g. self (no jobs) how would that work?
+# (kind of seems like I'll need the json matrix)
+# - [ ] Artifacts aren't working right when in reusing jobs context
+# - [ ] composer REQUIRE_GRAPHQL, etc
+# - [ ] matrix entry for graphql3 vs 4 for behat
+# - [ ] PDO matrix entry
+# - [ ] Probably get rid of apache and use serve.php for behat since it'll run the job faster and it simplies this file (though behat will always be slow)
+
 name: ci
 
 on:
@@ -11,6 +21,10 @@ on:
         type: string
         required: false
         default: ''
+      custom_jobs:
+        type: array
+        required: false
+        default: []
       run_endtoend:
         type: boolean
         #description: "behat"
@@ -57,7 +71,7 @@ jobs:
           - php: '7.3'
             phpcoverage: true
           - php: '7.4'
-            phplint: true
+            phplinting: true
           - php: '7.4'
             phpunit: true
 
@@ -67,9 +81,6 @@ jobs:
     outputs:
       matrix: ${{ steps.generate-matrix.outputs.matrix }}
     steps:
-      # not sure why I'd need checkout, try deleting later
-      # - name: Checkout code
-      #   uses: actions/checkout@v2
       - name: Install PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -84,10 +95,10 @@ jobs:
           echo "run_endtoend=${{ inputs.run_endtoend }}" >> inputs.txt
           echo "run_js=${{ inputs.run_js }}" >> inputs.txt
           echo "run_phpcoverage=${{ inputs.run_phpcoverage }}" >> inputs.txt
-          echo "run_phplint=${{ inputs.run_phplint }}" >> inputs.txt
+          echo "run_phplinting=${{ inputs.run_phplinting }}" >> inputs.txt
           echo "run_phpunit=${{ inputs.run_phpunit }}" >> inputs.txt
+          echo "custom_jobs=${{ inputs.custom_jobs }}" >> inputs.txt
           cat inputs.txt
-          echo $(php matrix.php)
           MATRIX_JSON=$(php matrix.php)
           echo "::set-output name=matrix::${MATRIX_JSON}"
 
@@ -112,17 +123,7 @@ jobs:
       # set fail-fast to false prevent one job from cancelling other jobs
       fail-fast: false
 
-    # TODO:
-    # - [ ] provision as inputs? e.g. self (no jobs) how would that work?
-    # - [ ] custom jobs matrix in inputs
-    # (kind of seems like I'll need the json matrix)
-    # - [ ] Artifacts aren't working right when in reusing jobs context
-    # - [ ] composer REQUIRE_GRAPHQL, etc
-    # - [ ] matrix entry for graphql3 vs 4 for behat
-    # - [ ] PDO matrix entry
-    # - [ ] Probably get rid of apache and use serve.php for behat since it'll run the job faster and it simplies this file (though behat will always be slow)
-
-    name: PHP ${{ matrix.php }}${{ matrix.phpunit && ' - phpunit' || '' }}${{ matrix.endtoend && ' - endtoend' || '' }}${{ matrix.js && ' - js' || '' }}${{ matrix.phpcoverage && ' - phpcoverage' || '' }}${{ matrix.phplint && ' - phplint' || '' }}
+    name: PHP ${{ matrix.php }}${{ matrix.phpunit && ' - phpunit' || '' }}${{ matrix.endtoend && ' - endtoend' || '' }}${{ matrix.js && ' - js' || '' }}${{ matrix.phpcoverage && ' - phpcoverage' || '' }}${{ matrix.phplinting && ' - phplinting' || '' }}
 
     steps:
       - name: Preparation
@@ -132,7 +133,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install PHP - regular
+      - name: Install PHP
         uses: shivammathur/setup-php@v2
         # if: ${{ matrix.endtoend != true && matrix.phpcoverage != true }}
         if: ${{ matrix.phpcoverage != true }}
@@ -141,7 +142,7 @@ jobs:
           extensions: curl, dom, gd, intl, json, ldap, mbstring, mysql, tidy, zip
           tools: composer:v2
 
-      - name: Install PHP - phpunit coverage test
+      - name: Install PHP - PHP coverage test
         uses: shivammathur/setup-php@v2
         if: ${{ matrix.phpcoverage == true && inputs.run_phpcoverage }}
         with:
@@ -150,24 +151,13 @@ jobs:
           tools: composer:v2
           coverage: xdebug
 
-     # Doing this BEFORE shivammathur/setup-php means that step can no longer use cached versions
-     # and is runs much slower.  Full manual install is faster at that point
-      - name: Install libapache2-mod-php - endtoend test
-        if: ${{ matrix.endtoend == true  && inputs.run_endtoend }}
-        run: |
-          sudo apt install -y software-properties-common
-          sudo add-apt-repository -y ppa:ondrej/php
-          sudo add-apt-repository -y ppa:ondrej/apache2
-          sudo apt update
-          sudo apt install libapache2-mod-php${{ matrix.php }}
-
       # TODO: probably don't need apache, just revert to using serve.php for behat
       # would need to check if cms installed?  it's a different bootstrap to what's in behat.yml
       # For behat, install php manually
       # This is kind of slow at around 44 seconds, it's only used because there are
       # issues apt installing libapache2-mod-php which is needed for behat
       # - name: Install PHP - behat test
-      #   if: ${{ matrix.endtoend == true  && inputs.run_endtoend }}
+      #   if: ${{ matrix.endtoend == true && inputs.run_endtoend }}
       #   run: |
       #     # Make all php versions other than the current main version available
       #     sudo apt update && sudo apt install -y software-properties-common
@@ -195,8 +185,17 @@ jobs:
           fi
           echo "PHP has been configured"
 
+      - name: Install additional requirements - endtoend test
+        if: ${{ matrix.endtoend == true && inputs.run_endtoend }}
+        run: |
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository -y ppa:ondrej/php
+          sudo add-apt-repository -y ppa:ondrej/apache2
+          sudo apt update
+          sudo apt install libapache2-mod-php${{ matrix.php }}
+
       - name: Configure apache - endtoend test
-        if: ${{ matrix.endtoend == true  && inputs.run_endtoend }}
+        if: ${{ matrix.endtoend == true && inputs.run_endtoend }}
         run: |
           # apache2 is installed and running by default in ubuntu
           # update dir.conf to use index.php as the primary index doc
@@ -250,13 +249,13 @@ jobs:
           # If we really need to dev/build flush here (perhaps just for visibility) then we could delete the silverstripe-cache dir afterwards with
           # dir=\$(ls /tmp | grep silverstripe-cache | head -1); if [ "\$dir" ]; then rm -rf /tmp/\$dir; fi
 
-      - name: phpunit
+      - name: Tests - PHPUnit
         if: ${{ matrix.phpunit == true && inputs.run_phpunit }}
         run: |
           vendor/bin/phpunit --verbose
           echo "Passed"
 
-      - name: endtoend
+      - name: Tests - End to end
         if: ${{ matrix.endtoend == true && inputs.run_endtoend }}
         run: |
           # Run behat tests
@@ -271,7 +270,7 @@ jobs:
           vendor/bin/behat
           echo "Passed"
 
-      - name: js
+      - name: Tests - JS
         if: ${{ matrix.js == true && inputs.run_js }}
         run: |
           # Run yarn test etc
@@ -302,8 +301,8 @@ jobs:
           yarn run lint
           echo "Passed"
 
-      - name: phplint
-        if: ${{ matrix.phplint == true && inputs.run_phplint }}
+      - name: Tests - PHP linting
+        if: ${{ matrix.phplinting == true && inputs.run_phplinting }}
         run: |
           if [ ! -f phpcs.xml.dist ]; then echo "Missing phpcs.xml.dist" && exit 1; fi
           vendor/bin/phpcs
@@ -317,7 +316,7 @@ jobs:
           fi
           echo "Passed"
 
-      - name: phpcoverage
+      - name: Tests - PHP Coverage
         if: ${{ matrix.phpcoverage == true && inputs.run_phpcoverage }}
         run: |
           curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import
