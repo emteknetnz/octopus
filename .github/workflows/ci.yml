@@ -148,16 +148,7 @@ jobs:
 
     name: PHP ${{ matrix.php }}${{ matrix.phpunit && ' - phpunit' || '' }}${{ matrix.endtoend && ' - endtoend' || '' }}${{ matrix.js && ' - js' || '' }}${{ matrix.phpcoverage && ' - phpcoverage' || '' }}${{ matrix.phplinting && ' - phplinting' || '' }}
 
-    steps:
-      - name: Preparation
-        run: |
-          # Create artifacts directory
-          if [ ! -d artifacts ]; then mkdir artifacts; fi
-          mkdir ${{ env.artifacts_path }}
-          echo "Artifacts will be saved to ${{ env.artifacts_path }}"
-          ls
-          ls artifacts
-      
+    steps:      
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -263,11 +254,13 @@ jobs:
           if [ "${{ inputs.require_extra }}" != "" ]; then
             composer require "${{ inputs.require_extra }}" --no-update --prefer-dist
           fi
-          ls
-          ls artifacts
-          cp composer.json ${{ env.artifacts_path }}/composer.json
+          # artifacts directory can only be created here, as composer will remove any existing artifact directory
+          if [ ! -d artifacts ]; then mkdir artifacts; fi
+          mkdir ${{ env.artifacts_path }}
+          echo "Artifacts will be saved to ${{ env.artifacts_path }}"
+          cp composer.json ${{ env.artifacts_path }}
           composer update --prefer-dist --no-interaction --no-progress
-          cp composer.lock ${{ env.artifacts_path }}/composer.lock
+          cp composer.lock ${{ env.artifacts_path }}
 
       - name: Prepare Silverstripe
         run: |
@@ -298,7 +291,7 @@ jobs:
           php behat.php
           rm behat.php
           rm behat-headless.yml
-          cp behat.yml ${{ env.artifacts_path }}/behat.yml
+          cp behat.yml ${{ env.artifacts_path }}
           nohup sh -c "chromedriver --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat
           echo "Passed"
