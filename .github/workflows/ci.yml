@@ -35,13 +35,7 @@ on:
       extra_jobs:
         type: string
         required: false
-        default: ''
-      # composer
-      composer_require_extra:
-        type: string
-        required: false
-        default: ''
-      # run tests
+        default: 'none'
       run_endtoend:
         type: boolean
         #description: "behat"
@@ -57,7 +51,7 @@ on:
         #description: "codecov"
         required: false
         default: true
-      run_phplint:
+      run_phplinting:
         type: boolean
         #description: "phpcs, phpstan (optional), cow schema validate"
         required: false
@@ -67,6 +61,10 @@ on:
         #descrtiption: "phpunit"
         required: false
         default: true
+      composer_require_extra:
+        type: string
+        required: false
+        default: ''
 
 jobs:
 
@@ -112,7 +110,7 @@ jobs:
           echo "run_js:${{ inputs.run_js }}" >> inputs.yml
           echo "run_phpcoverage:${{ inputs.run_phpcoverage }}" >> inputs.yml
           echo "run_phplinting:${{ inputs.run_phplinting }}" >> inputs.yml
-          echo "run_phpunit:${{ inputs.run_phpunit }}" >> inputs.yml          
+          echo "run_phpunit:${{ inputs.run_phpunit }}" >> inputs.yml
           echo "default_jobs" >> inputs.yml
           echo "${{ inputs.default_jobs }}" >> inputs.yml
           echo "extra_jobs:" >> inputs.yml

@@ -18,8 +18,14 @@ foreach ($inputs as $input => $value) {
         $test = str_replace('run_', '', $input);
         $runTests[$test] = $value;
     } else if ($input === 'default_jobs') {
+        if ($value === 'none') {
+            $value = [];
+        }
         $defaultJobs = $value;
     } else if ($input === 'extra_jobs') {
+        if ($value === 'none') {
+            $value = [];
+        }
         $extraJobs = $value;
     }
 }
