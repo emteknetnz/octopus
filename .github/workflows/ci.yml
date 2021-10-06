@@ -364,5 +364,5 @@ jobs:
         uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: artifacts
+          name: ${{ env.artifacts_path }}
           path: ${{ env.artifacts_path }}
