@@ -152,7 +152,7 @@ jobs:
 
      # Doing this BEFORE shivammathur/setup-php means that step can no longer use cached versions
      # and is runs much slower.  Full manual install is faster at that point
-     - name: Install libapache2-mod-php - endtoend test
+      - name: Install libapache2-mod-php - endtoend test
         if: ${{ matrix.endtoend == true  && inputs.run_endtoend }}
         run: |
           sudo apt install -y software-properties-common
