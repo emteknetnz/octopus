@@ -123,9 +123,6 @@ jobs:
     # TODO: check if this is an LTS - should be 20.04
     runs-on: ubuntu-latest
 
-    outputs:
-      matrix: ${{ env.artifacts_path }}
-
     services:
       mysql:
         image: mysql:5.7
@@ -145,7 +142,7 @@ jobs:
 
     env:
       artifacts_name: php${{ matrix.php }}_${{ matrix.phpunit && 'phpunit' || '' }}${{ matrix.endtoend && 'endtoend' || '' }}${{ matrix.js && 'js' || '' }}${{ matrix.phpcoverage && 'phpcoverage' || '' }}${{ matrix.phplinting && 'phplinting' || '' }}
-      artifacts_path: artifacts/php${{ matrix.php }}_${{ matrix.phpunit && 'phpunit' || '' }}${{ matrix.endtoend && 'endtoend' || '' }}${{ matrix.js && 'js' || '' }}${{ matrix.phpcoverage && 'phpcoverage' || '' }}${{ matrix.phplinting && 'phplinting' || '' }}
+      # artifacts_path: artifacts/php${{ matrix.php }}_${{ matrix.phpunit && 'phpunit' || '' }}${{ matrix.endtoend && 'endtoend' || '' }}${{ matrix.js && 'js' || '' }}${{ matrix.phpcoverage && 'phpcoverage' || '' }}${{ matrix.phplinting && 'phplinting' || '' }}
 
     name: PHP ${{ matrix.php }}${{ matrix.phpunit && ' - phpunit' || '' }}${{ matrix.endtoend && ' - endtoend' || '' }}${{ matrix.js && ' - js' || '' }}${{ matrix.phpcoverage && ' - phpcoverage' || '' }}${{ matrix.phplinting && ' - phplinting' || '' }}
 
@@ -286,7 +283,6 @@ jobs:
           php behat.php
           rm behat.php
           rm behat-headless.yml
-          cp behat.yml ${{ env.artifacts_path }}
           nohup sh -c "chromedriver --log-path=artifacts/chromedriver.log --log-level=INFO" > /dev/null 2>&1 &
           vendor/bin/behat
           echo "Passed"
@@ -356,14 +352,18 @@ jobs:
         run: |
           # Artifacts directory must be created after composer install as it would remove the artifacts directory
           mkdir artifacts
-          mkdir ${{ env.artifacts_path }}
-          cp composer.json ${{ env.artifacts_path }}
-          cp composer.lock ${{ env.artifacts_path }}
-          cp behat.yml ${{ env.artifacts_path }}
+          # mkdir ${{ env.artifacts_path }}
+          # cp composer.json ${{ env.artifacts_path }}
+          # cp composer.lock ${{ env.artifacts_path }}
+          # cp behat.yml ${{ env.artifacts_path }}
+          mkdir artifacts
+          cp composer.json artifacts
+          cp composer.lock artifacts
+          cp behat.yml artifacts
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         if: always()
         with:
           name: ${{ env.artifacts_name }}
-          path: ${{ env.artifacts_path }}
+          path: artifacts
