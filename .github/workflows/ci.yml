@@ -4,14 +4,6 @@
 
 name: ci
 
-# on:
-#   push:
-#   pull_request:
-#   # every day at midnight:
-#   # currently about 1:30pm nzt
-#   schedule:
-#     - cron: '0 0 * * *'
-
 on:
   workflow_call:
     inputs:
@@ -76,8 +68,8 @@ jobs:
       matrix: ${{ steps.generate-matrix.outputs.matrix }}
     steps:
       # not sure why I'd need checkout, try deleting later
-      - name: Checkout code
-        uses: actions/checkout@v2
+      # - name: Checkout code
+      #   uses: actions/checkout@v2
       - name: Install PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -85,7 +77,6 @@ jobs:
           extensions: yaml
       - name: generate matrix
         id: generate-matrix
-
         run: |
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/matrix.php
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/workflows/ci.yml
@@ -120,25 +111,6 @@ jobs:
       matrix: ${{fromJson(needs.genmatrix.outputs.matrix)}}
       # set fail-fast to false prevent one job from cancelling other jobs
       fail-fast: false
-      # matrix:
-      #   include:
-      #     # behat test works - TODO: switch to serve.php TODO: change to endtoend for abstraction
-      #     # - php: '7.3'
-      #     #   behat: true
-      #     # npm test probably works, though needs to be tested on a proper repo
-      #     # - php: '7.4'
-      #     #   npm: true
-      #     - php: '7.4'
-      #       phpunit: true
-      #     # phpunit coverage test works
-      #     # phpcoverage limited to php7.3 due to old phpunit5 otherwise you'll get Class 'PHP_Token_COALESCE_EQUAL' not found
-      #     # - php: '7.3'
-      #     #   phpcoverage: true
-      #     - php: '7.4'
-      #       phplint: true
-      #     # phpstan probably works though needs to be tested on something that actually uses it
-      #     # - php: '7.4'
-      #     #   phpstan: true
 
     # TODO:
     # - [ ] provision as inputs? e.g. self (no jobs) how would that work?
@@ -221,7 +193,7 @@ jobs:
           fi
           echo "PHP has been configured"
 
-      - name: Configure apache - behat test
+      - name: Configure apache - endtoend test
         if: ${{ matrix.endtoend == true  && inputs.run_endtoend }}
         run: |
           # apache2 is installed and running by default in ubuntu
@@ -233,9 +205,9 @@ jobs:
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/000-default.conf
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/apache2.php
           php apache2.php
-          rm apache2.php
-          rm 000-default.conf
           sudo cp 000-default.conf /etc/apache2/sites-enabled/000-default.conf
+          rm 000-default.conf
+          rm apache2.php
           sudo a2enmod rewrite
           # run apache as 'runner:docker' instead of 'www-data:www-data'
           sudo sh -c "echo 'export APACHE_RUN_USER=runner' >> /etc/apache2/envvars"
