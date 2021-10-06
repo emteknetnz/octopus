@@ -107,7 +107,7 @@ jobs:
           wget https://raw.githubusercontent.com/emteknetnz/octopus/main/.github/things/matrix.php
           touch inputs.yml
           echo "run_endtoend: ${{ inputs.run_endtoend }}" >> inputs.yml
-          echo "run_js :${{ inputs.run_js }}" >> inputs.yml
+          echo "run_js: ${{ inputs.run_js }}" >> inputs.yml
           echo "run_phpcoverage: ${{ inputs.run_phpcoverage }}" >> inputs.yml
           echo "run_phplinting: ${{ inputs.run_phplinting }}" >> inputs.yml
           echo "run_phpunit: ${{ inputs.run_phpunit }}" >> inputs.yml
