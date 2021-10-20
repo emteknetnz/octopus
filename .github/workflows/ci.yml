@@ -36,8 +36,7 @@ on:
       extra_jobs:
         type: string
         required: false
-        default: |
-          none
+        default: '  none'
       run_endtoend:
         type: boolean
         required: false
