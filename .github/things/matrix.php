@@ -7,6 +7,7 @@ $runTests = [];
 $defaultJobs = [];
 $extraJobs = [];
 foreach ($inputs as $input => $value) {
+    $value = trim($value);
     if (preg_match('#^run_#', $input)) {
         if ($value === 'true') {
             $value = true;
