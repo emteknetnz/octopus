@@ -1,0 +1,17 @@
+# auto tag patch releases on pull-request merge
+# status of unit tests does not matter
+# 
+
+name: autotag
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  myaction:
+    #if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    run: |
+      echo "github.event.actionn ${{ github.event.action }}"
+      echo "github.event.pull_request.merged ${{ github.event.pull_request.merged }}"
