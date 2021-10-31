@@ -41,6 +41,7 @@ jobs:
           $j = json_decode($s);
           print_r($J);
           EOF
+          cat run.php
           php run.php
           
           # Get latest patch tag
