@@ -1,36 +1,47 @@
 name: Tag patch release
 
 on:
-  # https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#pull_request
   pull_request:
+    # https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#pull_request
+    # There isn't a specific 'on merge' type, closed is the best available, use with a conditional statement on the action
     types: [closed]
     branches:
-      # TODO: should be #*.*# type of match - if not possible then check in first step else `exit 1`
-      - main
+      - 1.*
+      - 2.*
+      - 3.*
+      - 4.*
+      - 5.*
+      - 6.*
+      - 7.*
+      - 8.*
+      - 9.*
+      - 10.*
+      - 11.*
+      - 12.*
+      - 13.*
+      - 14.*
+      - 15.*
 
 jobs:
-  myaction:
+  mainjob:
     if: github.event.action == 'closed' && github.event.pull_request.merged
-    name: 'My action'
+    name: 'Main job'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
           # Use `fetch-depth: 0` so that `git tag` works as expected as well as changelog generation
-          # This probably isn't as efficient as using the github API, though if framework (largest repo) work fine then just keep as is
+          # This possibly isn't as efficient as using the github API, though if framework (largest repo) work fine then just keep as is
           fetch-depth: 0
-
+          
       - name: Install PHP
         uses: shivammathur/setup-php@v2
-        with:
-          php-version: '7.4'
-
-      - name: Tag new release
+        
+      - name: Tag patch release
         run: |
-          # Calculate the next tag to release.  Will exit if invalid.
-          # TODO: Am running on main branch, normally would have a `1.0` like branch so would need to detect that via github.ref .replace '^refs/heads/' ''
-          MINOR_BRANCH=1.0
+          # Tag patch release
+          MINOR_BRANCH=$(php -r 'echo substr("${{ github.ref }}", 11);')
                               
           # Get the current patch number
           /usr/bin/git tag >> tags.txt
@@ -53,29 +64,20 @@ jobs:
           NEXT_PATCH_N=$((CURR_PATCH_N+1))
           TAG="$MINOR_BRANCH.$NEXT_PATCH_N"
           
-          # TODO: change main to MINOR_BRANCH
-          CHANGELOG=$(git log --oneline --pretty=format:"* %s (%an) - %h" --no-merges $MINOR_BRANCH.$CURR_PATCH_N...main)
+          CHANGELOG=$(git log --oneline --pretty=format:"* %s (%an) - %h" --no-merges $MINOR_BRANCH.$CURR_PATCH_N...$MINOR_BRANCH)
           echo "$CHANGELOG" > __changelog.txt
           CHANGELOG=$(php -r 'echo str_replace(["\n", "\""], ["\\n", "\\\""], trim(file_get_contents("__changelog.txt")));')
           
           SHA=$(git rev-parse HEAD)
           
           # POST new tag to GitHub API
+          # Note: secrets.GITHUB_TOKEN is an auto-generated token, no need to manually create a secret in the repo
           curl -s -X POST https://api.github.com/repos/${{ github.repository }}/git/refs \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -d @- << EOF
           {
             "ref": "refs/tags/$TAG",
             "sha": "$SHA"
-          }
-          EOF
-          
-          echo "JSON IS"
-          cat << EOF
-          {
-            "tag_name": "$TAG",
-            "name": "$TAG",
-            "body": "$CHANGELOG"
           }
           EOF
           
