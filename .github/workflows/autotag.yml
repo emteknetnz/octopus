@@ -5,9 +5,9 @@
 name: autotag
 
 on:
-  #push:
-  #  branches:
-  #    - main
+  push:
+    branches:
+      - main
   # https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#pull_request
   pull_request:
     types: [closed]
