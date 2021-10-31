@@ -19,8 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      # checkout the last 50 commits to ensure we get the most recent patch tag when running `git tag`
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 50
 
       - name: Install PHP
         uses: shivammathur/setup-php@v2
