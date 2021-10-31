@@ -19,19 +19,18 @@ env:
 
 jobs:
   myaction:
+    if: github.event.action == 'closed' && github.event.pull_request.merged
     name: 'My action'
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
     #outputs:
     #  changelog: ${{ steps.generate-matrix.outputs.matrix }}
     steps:
-      - name: Check if is pull-request merge event
-        run: |
-          if [ "${{ github.event.action }}" != "Closed" ] || [ "${{ github.event.pull_request.merged }}" != "true" ]; then
-            echo "Not a pull-request merge event, existing"
-            exit 1
-          fi
+#       - name: Check if is pull-request merge event
+#         run: |
+#           if [ "${{ github.event.action }}" != "closed" ] || [ "${{ github.event.pull_request.merged }}" != "true" ]; then
+#             echo "Not a pull-request merge event, existing"
+#             exit 1
+#           fi
 
       # Use `fetch-depth: 0` so that `git tag` works as expected
       # TODO: investigate instead authenticating with github API (need to authenticate or will go over rate limit) and pull .json from /tags endpoint
