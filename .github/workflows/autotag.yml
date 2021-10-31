@@ -5,10 +5,12 @@
 name: autotag
 
 on:
-  push:
-    branches:
-      - main
+  #push:
+  #  branches:
+  #    - main
+  # https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#pull_request
   pull_request:
+    types: [closed]
     branches:
       - main
 
@@ -20,7 +22,7 @@ jobs:
       - name: My step
         # if: github.event.action == 'closed' && github.event.pull_request.merged == true
         run: |
-          echo "github.event"
-          echo ${{ github.event }}
+          echo "cat \$GITHUB_EVENT_PATH"
+          cat $GITHUB_EVENT_PATH
           echo "github.event.action ${{ github.event.action }}"
           echo "github.event.pull_request.merged ${{ github.event.pull_request.merged }}"
