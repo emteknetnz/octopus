@@ -89,7 +89,7 @@ jobs:
           {
             "tag_name": "$TAG",
             "name": "$TAG",
-            "body": "this should be dollar changelog"
+            "body": "$CHANGELOG"
           }
           EOF
           
