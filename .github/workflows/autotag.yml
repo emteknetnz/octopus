@@ -34,13 +34,26 @@ jobs:
           # show json associated with the event, can be parsed with jq()
           # cat $GITHUB_EVENT_PATH
           
+          # need to wget rather that php file_get_contents as the latter is disallowed
           wget -O tags.json https://api.github.com/repos/${{ github.repository }}/tags
           cat << EOF > run.php
           <?php
-          \$j = json_decode(file_get_contents('tags.json'));
-          print_r(\$j);
+          \$major = '1'; # TODO: read from ${{ github.ref }}
+          \$arr = [];
+          foreach (json_decode(file_get_contents('tags.json') as \$o) {
+            if (!preg_match('#^([0-9]+)\.([0-9]+)\.([0-9]+)\$#'), \$o->name, \$m) continue;
+            list(\$z, \$a, \$b, \$c) = \$m;
+            if (\$a != \$major) continue;
+            \$arr[] = (float) "\$b.\$c";
+          }
+          if (count(\$arr) == 0) exit(0);
+          sort(\$arr);
+          \$v = \$arr[count(\$arr) - 1];
+          echo sprintf('%s.%s', \$major, \$v + 0.1);
           EOF
-          php run.php
+          NEW_TAG=$(php run.php)
+          
+          echo "NEW_TAG is: $NEW_TAG"
           
           # Get latest patch tag
           
