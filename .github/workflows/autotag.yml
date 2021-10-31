@@ -81,11 +81,10 @@ jobs:
           #echo "::set-output name=changelog::${CHANGELOG}"
           
           SHA=$(git rev-parse HEAD)
-          REMOTE=$(git config --get remote.origin.url)
-          REPO=$(basename $REMOTE .git)
+          echo "SHA is $SHA"        
           
           # POST new tag via Github API
-          curl -s -X POST https://api.github.com/repos/$REPO_OWNER/$REPO/git/refs \
+          curl -s -X POST https://api.github.com/repos/${{ github.repository }}/git/refs \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -d @- << EOF
           {
