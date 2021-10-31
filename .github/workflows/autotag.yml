@@ -61,7 +61,7 @@ jobs:
           EOF
           
           CURR_PATCH_N=$(php __run.php)
-          if [ "$CURR_PATCH_N" == "" ]; then CURR_PATCH_N="$MINOR_BRANCH.0"; fi
+          if [ "$CURR_PATCH_N" == "" ]; then echo "No current release on minor branch $MINOR_BRANCH, do a minor release first" && exit 1; fi
           NEXT_PATCH_N=$((CURR_PATCH_N+1))
           TAG="$MINOR_BRANCH.$NEXT_PATCH_N"
           
