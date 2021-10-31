@@ -1,8 +1,6 @@
 name: Tag patch release
 
 on:
-  # TODO tmp
-  push:
   pull_request:
     # https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#pull_request
     # There isn't a specific 'on merge' type, closed is the best available, use with a conditional statement on the action
@@ -26,8 +24,7 @@ on:
 
 jobs:
   mainjob:
-    # TODO tmp
-    # if: github.event.action == 'closed' && github.event.pull_request.merged
+    if: github.event.action == 'closed' && github.event.pull_request.merged
     name: 'Main job'
     runs-on: ubuntu-latest
     steps:
@@ -45,7 +42,7 @@ jobs:
         run: |
           # Tag patch release
           
-          MINOR_BRANCH=$(php -r 'echo substr("${{ github.ref }}", 11);')
+          MINOR_BRANCH=$(php -r 'echo substr("${{ github.base_ref }}", 11);')
           echo "MINOR_BRANCH is $MINOR_BRANCH"
           if ! [[ "$MINOR_BRANCH" =~ ^[0-9]+\.[0-9]+$ ]]; then echo "Invalid minor branch $MINOR_BRANCH, existing" && exit 1; fi
                               
