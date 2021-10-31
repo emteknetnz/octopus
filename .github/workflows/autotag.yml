@@ -62,10 +62,8 @@ jobs:
           NEXT_PATCH_N=$((CURR_PATCH_N+1))
           echo "NEXT_PATCH_N is $NEXT_PATCH_N"
           
-          #TMP
-          MINOR_BRANCH=main
-          
-          git log --oneline --pretty=format:"* %s (%an) - %h" --no-merges $MINOR_BRANCH.$CURR_PATCH_N...$MINOR_BRANCH
+          # TMP - change `main` to $MINOR_BRANCH
+          git log --oneline --pretty=format:"* %s (%an) - %h" --no-merges $MINOR_BRANCH.$CURR_PATCH_N...main
                     
           
           
