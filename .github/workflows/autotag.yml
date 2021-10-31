@@ -88,4 +88,7 @@ jobs:
             "name": "$TAG",
             "body": "this should be dollar changelog"
           }
-          EOF          
+          EOF
+          
+          echo "$TAG has been tagged and released"
+          
