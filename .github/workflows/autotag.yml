@@ -42,7 +42,7 @@ jobs:
         run: |
           # Tag patch release
           
-          MINOR_BRANCH=${{ github.base_ref }}"
+          MINOR_BRANCH=${{ github.base_ref }}
           if ! [[ "$MINOR_BRANCH" =~ ^[0-9]+\.[0-9]+$ ]]; then echo "Invalid minor branch $MINOR_BRANCH, existing" && exit 1; fi
                               
           # Get the current patch number
