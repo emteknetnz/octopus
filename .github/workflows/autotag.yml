@@ -58,7 +58,7 @@ jobs:
           EOF
           CURR_PATCH_N=$(php run.php)
           echo "CURR_PATCH_N is $CURR_PATCH_N"
-          if [ "$CURR_PATH_N" == "" ]; then echo "No existing semver tag found for minor branch $MINOR_BRANCH, exiting" && exit 0; fi
+          if [ "$CURR_PATCH_N" == "" ]; then echo "No existing semver tag found for minor branch $MINOR_BRANCH, exiting" && exit 0; fi
           NEXT_PATCH_N=$((CURR_PATCH_N+1))
           echo "NEXT_PATCH_N is $NEXT_PATCH_N"
           
