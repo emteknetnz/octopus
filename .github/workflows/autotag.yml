@@ -41,6 +41,10 @@ jobs:
           # show json associated with the event, can be parsed with jq()
           # cat $GITHUB_EVENT_PATH
           
+          echo 123
+          git tag
+          
+          git show
           
           # Echo the current patch verison
           git tag >> tags.txt
