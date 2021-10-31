@@ -14,9 +14,6 @@ on:
       # TODO: should be #*.*# type of match - if not possible then check in first step else `exit 1`
       - main
 
-env:
-  github_token: ${{ secrets.GITHUB_TOKEN }}
-
 jobs:
   myaction:
     if: github.event.action == 'closed' && github.event.pull_request.merged
@@ -75,22 +72,36 @@ jobs:
           NEXT_PATCH_N=$((CURR_PATCH_N+1))
           TAG="$MINOR_BRANCH.$NEXT_PATCH_N"
           echo "TAG is $TAG"
-          echo "::set-output name=tag::${MINOR_BRANCH}.${NEXT_PATCH_N}"
+          #echo "::set-output name=tag::${MINOR_BRANCH}.${NEXT_PATCH_N}"
           
           # TODO: change main to MINOR_BRANCH
           CHANGELOG=$(git log --oneline --pretty=format:"* %s (%an) - %h" --no-merges $MINOR_BRANCH.$CURR_PATCH_N...main)
           echo "CHANGELOG is"
           echo "$CHANGELOG"
-          echo "::set-output name=changelog::${CHANGELOG}"
+          #echo "::set-output name=changelog::${CHANGELOG}"
+          
+          SHA=$(git rev-parse HEAD)
+          REMOTE=$(git config --get remote.origin.url)
+          REPO=$(basename $REMOTE .git)
+          
+          # POST new tag via Github API
+          curl -s -X POST https://api.github.com/repos/$REPO_OWNER/$REPO/git/refs \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -d @- << EOF
+          {
+            "ref": "refs/tags/$TAG",
+            "sha": "$SHA"
+          }
+          EOF
 
       # https://github.com/marketplace/actions/github-actions-create-tag
-      - name: Bump version and push tag
-        uses: laputansoft/github-tag-action@v4.6
-        with:
-          github_token: ${{ env.github_token }}
-          tag: ${{ steps.generate-tag.outputs.tag }}
-          # TODO: limit to 1.2 minor branches
-          release_branches: .*
+#       - name: Bump version and push tag
+#         uses: laputansoft/github-tag-action@v4.6
+#         with:
+#           github_token: ${{ secrets.GITHUB_TOKEN }}
+#           tag: ${{ steps.generate-tag.outputs.tag }}
+#           # TODO: limit to 1.2 minor branches
+#           release_branches: .*
       
       # TODO: publish a release (with changelog)
                        
