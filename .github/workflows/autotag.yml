@@ -46,7 +46,7 @@ jobs:
           cat << EOF > run.php
           <?php
           \$arr = [];
-          foreach (explode("\n", 'tags.txt') as \$tag) {
+          foreach (explode("\n", file_get_contents('tags.txt')) as \$tag) {
             if (!preg_match('#^([0-9]+)\.([0-9]+)\.([0-9]+)\$#', \$tag, \$m)) continue;
             list(\$z, \$a, \$b, \$c) = \$m;
             if ("\$a.\$b" != '$MINOR_BRANCH') continue;
