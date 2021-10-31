@@ -11,13 +11,22 @@ on:
   pull_request:
     types: [closed]
     branches:
+      # TODO: should be #*.*# type of match - if not possible then check in first step else `exit 1`
       - main
 
 jobs:
   myaction:
     name: 'My action'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
     steps:
+      - name: Check if is pull-request merge event
+        run: |
+          if [ "${{ github.event.action }}" != "Closed" ] || [ "${{ github.event.pull_request.merged }}" != "true" ]; then
+            echo "Not a pull-request merge event, existing"
+            exit 1
+          fi
 
       # Use `fetch-depth: 0` so that `git tag` works as expected
       - name: Checkout code
@@ -31,8 +40,7 @@ jobs:
           php-version: '7.4'
           extensions: yaml
 
-      - name: My step
-        # if: github.event.action == 'closed' && github.event.pull_request.merged == true
+      - name: Get current patch number
         run: |
           # Auto tag a new patch release
           # TODO: Am running on main branch, normally would have a `1.0` like branch so would need to detect that via github.ref .replace '^refs/heads/' ''
@@ -57,13 +65,16 @@ jobs:
           echo \$arr[count(\$arr) - 1];
           EOF
           CURR_PATCH_N=$(php run.php)
-          echo "CURR_PATCH_N is $CURR_PATCH_N"
           if [ "$CURR_PATCH_N" == "" ]; then echo "No existing semver tag found for minor branch $MINOR_BRANCH, exiting" && exit 0; fi
           NEXT_PATCH_N=$((CURR_PATCH_N+1))
-          echo "NEXT_PATCH_N is $NEXT_PATCH_N"
+          CHANGELOG=$(git log --oneline --pretty=format:"* %s (%an) - %h" --no-merges $MINOR_BRANCH.$CURR_PATCH_N...main)
+
+      - name: Bump version and push tag
+        uses: laputansoft/github-tag-action@v4.6
+        with:
+          github_token: ${{ env.github-token }}
+          tag: ${{ steps.package-version.outputs.version }}
           
-          # TMP - change `main` to $MINOR_BRANCH
-          git log --oneline --pretty=format:"* %s (%an) - %h" --no-merges $MINOR_BRANCH.$CURR_PATCH_N...main
                     
           
           
