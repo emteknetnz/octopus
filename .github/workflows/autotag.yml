@@ -1,12 +1,6 @@
-# auto tag patch releases on pull-request merge
-# status of unit tests does not matter
-# 
-
-name: autotag
+name: Tag patch release
 
 on:
-  # tmp
-  push:
   # https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#pull_request
   pull_request:
     types: [closed]
@@ -19,38 +13,25 @@ jobs:
     if: github.event.action == 'closed' && github.event.pull_request.merged
     name: 'My action'
     runs-on: ubuntu-latest
-    # TODO: try removing this since only a single job
-    outputs:
-      tag: ${{ steps.generate-tag.outputs.tag }}
-      changelog: ${{ steps.generate-tag.outputs.changelog }}
     steps:
-      # Use `fetch-depth: 0` so that `git tag` works as expected
-      # TODO: investigate instead authenticating with github API (need to authenticate or will go over rate limit) and pull .json from /tags endpoint
-      # would need to switch from php to node
-      # would probably then replace the laputansoft step with something custom in this file
-      # i.e. https://www.npmjs.com/package/@actions/github
-      # e.g. https://github.com/softprops/action-gh-release/blob/master/package.json
       - name: Checkout code
         uses: actions/checkout@v2
         with:
+          # Use `fetch-depth: 0` so that `git tag` works as expected as well as changelog generation
+          # This probably isn't as efficient as using the github API, though if framework (largest repo) work fine then just keep as is
           fetch-depth: 0
 
       - name: Install PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '7.4'
-          extensions: yaml
 
-      - name: Generate tag to release (and message)
-        id: generate-tag
+      - name: Tag new release
         run: |
           # Calculate the next tag to release.  Will exit if invalid.
           # TODO: Am running on main branch, normally would have a `1.0` like branch so would need to detect that via github.ref .replace '^refs/heads/' ''
           MINOR_BRANCH=1.0
-          
-          # show json associated with the event, can be parsed with jq()
-          # cat $GITHUB_EVENT_PATH
-                    
+                              
           # Get the current patch number
           /usr/bin/git tag >> tags.txt
           cat << EOF > run.php
@@ -72,18 +53,16 @@ jobs:
           NEXT_PATCH_N=$((CURR_PATCH_N+1))
           TAG="$MINOR_BRANCH.$NEXT_PATCH_N"
           echo "TAG is $TAG"
-          #echo "::set-output name=tag::${MINOR_BRANCH}.${NEXT_PATCH_N}"
           
           # TODO: change main to MINOR_BRANCH
           CHANGELOG=$(git log --oneline --pretty=format:"* %s (%an) - %h" --no-merges $MINOR_BRANCH.$CURR_PATCH_N...main)
           echo "CHANGELOG is"
           echo "$CHANGELOG"
-          #echo "::set-output name=changelog::${CHANGELOG}"
           
           SHA=$(git rev-parse HEAD)
           echo "SHA is $SHA"        
           
-          # POST new tag via Github API
+          # POST new tag to GitHub API
           curl -s -X POST https://api.github.com/repos/${{ github.repository }}/git/refs \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -d @- << EOF
@@ -92,16 +71,14 @@ jobs:
             "sha": "$SHA"
           }
           EOF
-
-      # https://github.com/marketplace/actions/github-actions-create-tag
-#       - name: Bump version and push tag
-#         uses: laputansoft/github-tag-action@v4.6
-#         with:
-#           github_token: ${{ secrets.GITHUB_TOKEN }}
-#           tag: ${{ steps.generate-tag.outputs.tag }}
-#           # TODO: limit to 1.2 minor branches
-#           release_branches: .*
-      
-      # TODO: publish a release (with changelog)
-                       
           
+          # POST new release to GitHub API
+          curl -s -X POST https://api.github.com/repos/${{ github.repository }}/releases \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -d @- << EOF
+          {
+            "tag_name": "$TAG",
+            "name": "$TAG",
+            "body": "$CHANGELOG"
+          }
+          EOF          
