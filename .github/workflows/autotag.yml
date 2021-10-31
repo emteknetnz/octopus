@@ -33,7 +33,7 @@ jobs:
         run: |
           # Auto tag a new patch release
           # TODO: Am running on main branch, normally would have a `1.0` like branch so would need to detect that via github.ref .replace '^refs/heads/' ''
-          MINOR_BRANCH=1.1
+          MINOR_BRANCH=1.0
           
           # show json associated with the event, can be parsed with jq()
           # cat $GITHUB_EVENT_PATH
