@@ -22,16 +22,11 @@ jobs:
     if: github.event.action == 'closed' && github.event.pull_request.merged
     name: 'My action'
     runs-on: ubuntu-latest
-    #outputs:
-    #  changelog: ${{ steps.generate-matrix.outputs.matrix }}
+    # TODO: try removing this since only a single job
+    outputs:
+      tag: ${{ steps.generate-tag.outputs.tag }}
+      changelog: ${{ steps.generate-tag.outputs.changelog }}
     steps:
-#       - name: Check if is pull-request merge event
-#         run: |
-#           if [ "${{ github.event.action }}" != "closed" ] || [ "${{ github.event.pull_request.merged }}" != "true" ]; then
-#             echo "Not a pull-request merge event, existing"
-#             exit 1
-#           fi
-
       # Use `fetch-depth: 0` so that `git tag` works as expected
       # TODO: investigate instead authenticating with github API (need to authenticate or will go over rate limit) and pull .json from /tags endpoint
       # would need to switch from php to node
@@ -84,15 +79,19 @@ jobs:
           
           # TODO: change main to MINOR_BRANCH
           CHANGELOG=$(git log --oneline --pretty=format:"* %s (%an) - %h" --no-merges $MINOR_BRANCH.$CURR_PATCH_N...main)
-          echo "CHANGELOG is $CHANGELOG"
+          echo "CHANGELOG is"
+          echo "$CHANGELOG"
           echo "::set-output name=changelog::${CHANGELOG}"
 
+      # https://github.com/marketplace/actions/github-actions-create-tag
       - name: Bump version and push tag
         uses: laputansoft/github-tag-action@v4.6
         with:
           github_token: ${{ env.github_token }}
           tag: ${{ steps.generate-tag.outputs.tag }}
-          
-                    
-          
+          # TODO: limit to 1.2 minor branches
+          release_branches: .*
+      
+      # TODO: publish a release (with changelog)
+                       
           
