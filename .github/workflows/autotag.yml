@@ -20,5 +20,7 @@ jobs:
       - name: My step
         # if: github.event.action == 'closed' && github.event.pull_request.merged == true
         run: |
+          echo "github.event"
+          echo ${{ github.event }}
           echo "github.event.action ${{ github.event.action }}"
           echo "github.event.pull_request.merged ${{ github.event.pull_request.merged }}"
