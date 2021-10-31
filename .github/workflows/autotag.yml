@@ -39,7 +39,7 @@ jobs:
           # cat $GITHUB_EVENT_PATH
           
           
-          # need to wget rather that php file_get_contents as the latter is disallowed
+          # Echo the current patch verison
           wget -O tags.json https://api.github.com/repos/${{ github.repository }}/tags
           cat << EOF > run.php
           <?php
@@ -52,14 +52,12 @@ jobs:
           }
           if (count(\$arr) == 0) exit(0);
           sort(\$arr);
-          \$v = \$arr[count(\$arr) - 1];
-          echo sprintf('%s.%s', '$MINOR_BRANCH', \$v + 0.1);
+          echo \$arr[count(\$arr) - 1];
           EOF
-          NEW_TAG=$(php run.php)
-          
-          echo "NEW_TAG is: $NEW_TAG"
-          
-          git log --oneline --pretty=format:"* %s (%an) - %h" --no-merges 3.0.0...3.0
+          CURR_PATCH_N=$(php run.php)
+          NEXT_PATCH_N=$((CURR_PATCH_N+1))
+                    
+          git log --oneline --pretty=format:"* %s (%an) - %h" --no-merges $MINOR_BRANCH.$CURR_PATCH_N...$MINOR_BRANCH
           
           # Get latest patch tag
           
