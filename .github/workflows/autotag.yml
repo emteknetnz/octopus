@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      # checkout the last 50 commits to ensure we get the most recent patch tag when running `git tag`
+      # Use `fetch-depth: 0` so that `git tag` works as expected
       - name: Checkout code
         uses: actions/checkout@v2
         with:
@@ -40,14 +40,9 @@ jobs:
           
           # show json associated with the event, can be parsed with jq()
           # cat $GITHUB_EVENT_PATH
-          
-          git tag
-          
-          git show
-          
+                    
           # Echo the current patch verison
           /usr/bin/git tag >> tags.txt
-          cat tags.txt
           cat << EOF > run.php
           <?php
           \$arr = [];
@@ -62,17 +57,15 @@ jobs:
           echo \$arr[count(\$arr) - 1];
           EOF
           CURR_PATCH_N=$(php run.php)
-          if ! [ $CURR_PATH_N ]; then echo "No existing semver tag found for minor branch $MINOR_BRANCH, exiting" && exit 0; fi
+          echo "CURR_PATCH_N is $CURR_PATCH_N"
+          if [ "$CURR_PATH_N" == "" ]; then echo "No existing semver tag found for minor branch $MINOR_BRANCH, exiting" && exit 0; fi
           NEXT_PATCH_N=$((CURR_PATCH_N+1))
+          echo "NEXT_PATCH_N is $NEXT_PATCH_N"
           
           #TMP
           MINOR_BRANCH=main
           
           git log --oneline --pretty=format:"* %s (%an) - %h" --no-merges $MINOR_BRANCH.$CURR_PATCH_N...$MINOR_BRANCH
-          
-          # Get latest patch tag
-          
-          # Increment it
-          
+                    
           
           
