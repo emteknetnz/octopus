@@ -23,7 +23,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          fetch-depth: 50
+          fetch-depth: 0
 
       - name: Install PHP
         uses: shivammathur/setup-php@v2
@@ -41,10 +41,9 @@ jobs:
           # show json associated with the event, can be parsed with jq()
           # cat $GITHUB_EVENT_PATH
           
-          echo 123
-          /usr/bin/git tag
+          git tag
           
-          /usr/bin/git show
+          git show
           
           # Echo the current patch verison
           /usr/bin/git tag >> tags.txt
@@ -69,7 +68,7 @@ jobs:
           #TMP
           MINOR_BRANCH=main
           
-          /usr/bin/git log --oneline --pretty=format:"* %s (%an) - %h" --no-merges $MINOR_BRANCH.$CURR_PATCH_N...$MINOR_BRANCH
+          git log --oneline --pretty=format:"* %s (%an) - %h" --no-merges $MINOR_BRANCH.$CURR_PATCH_N...$MINOR_BRANCH
           
           # Get latest patch tag
           
