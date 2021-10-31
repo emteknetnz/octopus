@@ -37,7 +37,7 @@ jobs:
           # TAG_URL="$(jq '.pull_request.base.repo.git_tags_url' $GITHUB_EVENT_PATH)"
           cat << EOF > run.php
           <?php
-          $s = file_get_contents("https://api.github.com/repos/${{ github.repository }}/tags");
+          $s = file_get_contents('https://api.github.com/repos/${{ github.repository }}/tags');
           $j = json_decode($s);
           print_r($J);
           EOF
