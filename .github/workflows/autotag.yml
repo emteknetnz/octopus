@@ -5,9 +5,8 @@
 name: autotag
 
 on:
+  # tmp
   push:
-    branches:
-      - main
   # https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#pull_request
   pull_request:
     types: [closed]
@@ -19,10 +18,34 @@ jobs:
     name: 'My action'
     runs-on: ubuntu-latest
     steps:
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          extensions: yaml
+
       - name: My step
         # if: github.event.action == 'closed' && github.event.pull_request.merged == true
         run: |
-          echo "cat \$GITHUB_EVENT_PATH"
-          cat $GITHUB_EVENT_PATH
-          echo "github.event.action ${{ github.event.action }}"
-          echo "github.event.pull_request.merged ${{ github.event.pull_request.merged }}"
+          # Auto tag a new patch release
+          # Am running on main branch, normally would have a `1.0` like branch so would need to detect that via github.ref .replace '^refs/heads/' ''
+          
+          # show json associated with the event, can be parsed with jq()
+          # cat $GITHUB_EVENT_PATH
+          
+          # TAG_URL="$(jq '.pull_request.base.repo.git_tags_url' $GITHUB_EVENT_PATH)"
+          cat << EOF > run.php
+          <?php
+          $s = file_get_contents("https://api.github.com/repos/${{ github.repository }}/tags");
+          $j = json_decode($s);
+          print_r($J);
+          EOF
+          php run.php
+          
+          # Get latest patch tag
+          
+          # Increment it
+          
+          
+          
