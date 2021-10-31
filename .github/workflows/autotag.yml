@@ -55,11 +55,10 @@ jobs:
           
           # TODO: change main to MINOR_BRANCH
           CHANGELOG=$(git log --oneline --pretty=format:"* %s (%an) - %h" --no-merges $MINOR_BRANCH.$CURR_PATCH_N...main)
-          # Change newline to \n string for json
           echo "$CHANGELOG" > __changelog.txt
-          CHANGELOG=$(php -r 'echo str_replace("\n", "\\n", trim(file_get_contents("__changelog.txt")));')
+          CHANGELOG=$(php -r 'echo str_replace(["\n", "\""], ["\\n", "\\""], trim(file_get_contents("__changelog.txt")));')
           
-          SHA=$(git rev-parse HEAD)   
+          SHA=$(git rev-parse HEAD)
           
           # POST new tag to GitHub API
           curl -s -X POST https://api.github.com/repos/${{ github.repository }}/git/refs \
@@ -68,6 +67,15 @@ jobs:
           {
             "ref": "refs/tags/$TAG",
             "sha": "$SHA"
+          }
+          EOF
+          
+          echo "JSON IS"
+          cat << EOF
+          {
+            "tag_name": "$TAG",
+            "name": "$TAG",
+            "body": "$CHANGELOG"
           }
           EOF
           
