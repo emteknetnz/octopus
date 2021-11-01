@@ -70,7 +70,7 @@ jobs:
       - name: Git
         run: |
           BRANCH=$(echo ${{ github.ref }} | cut -c 11-)
-          NEW_BRANCH=pulls/$REF/update-js-$(date +%s)
+          NEW_BRANCH=pulls/$BRANCH/update-js-$(date +%s)
           git config --local user.name "github-actions"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b $NEW_BRANCH
