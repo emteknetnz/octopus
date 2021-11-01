@@ -64,6 +64,8 @@ jobs:
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -d @- << EOF
           {
+            "title": "Update JS"
+            "body": "Automated yarn upgrade and yarn build"
             "head": "$BRANCH",
             "base": "${{ secrets.base_ref }}"
           }
