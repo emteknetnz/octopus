@@ -40,16 +40,32 @@ jobs:
 
       - name: Yarn upgrade
         run: yarn upgrade
-      
+
+      - name: Read package.json
+        id: package-json
+        run: |
+          LINT=0
+          TEST=0
+          if [ "$(jq .scripts.lint? package.json)" != "null" ]; then LINT=1; fi
+          if [ "$(jq .scripts.test? package.json)" != "null" ]; then TEST=1; fi
+          echo "::set-output name=lint::$LINT"
+          echo "::set-output name=test::$TEST"
+          echo "LINT is $LINT"
+          echo "TEST is $TEST"
+
+      # The followign 3 steps make up `yarn build` though split apart to make it easier
+      # to see where any failures originate from
       # TODO: pending merge on https://github.com/silverstripe/eslint-config/pull/8
-      # - name: Yarn lint
-      #   run: yarn lint
+      - name: Yarn lint
+        if: steps.package-json.output.lint == 1
+        run: yarn lint
 
       - name: Yarn test
+        if: steps.package-json.output.test == 1
         run: yarn test
 
-      - name: Yarn build
-        run: yarn test && NODE_ENV=production node_modules/webpack/bin/webpack.js -p --bail --progress
+      - name: Build JS with webpack
+        run: NODE_ENV=production node_modules/webpack/bin/webpack.js -p --bail --progress
 
       - name: Create new git branch
         run: |
