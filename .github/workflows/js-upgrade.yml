@@ -39,9 +39,7 @@ jobs:
       #     # update yarn.lock
       #     yarn upgrade
 
-        - name: Build JS
-          run: |
-            yarn build
-            git status
-
-
+      - name: Build JS
+        run: |
+          yarn build
+          git status
