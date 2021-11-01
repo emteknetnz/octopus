@@ -83,7 +83,9 @@ jobs:
           EOF
           
           # POST new release to GitHub API
-          curl -s -X POST https://api.github.com/repos/${{ github.repository }}/releases \
+          curl -s
+          -X POST https://api.github.com/repos/${{ github.repository }}/releases \
+          -H "Accept: application/vnd.github.v3+json" \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -d @- << EOF
           {
