@@ -38,14 +38,33 @@ jobs:
           yarn install
           cd $DIR
 
-      - name: Update yarn.lock
+      - name: Yarn
         run: |
-          # Run yarn upgrade and build js
-
-          # update yarn.lock
           yarn upgrade
+          # TODO get eslint PR merged
+          # yarn build
+          # TMP
+          yarn test && NODE_ENV=production webpack -p --bail --progress
 
-      - name: Build JS
+      - name: Git
         run: |
-          yarn build
+          BRANCH=pulls/${{ secrets.base_ref }}/update-js-$(date +%s)
           git status
+          git checkout -b $BRANCH
+          git add .
+          git commit -m 'DEP Update JS'
+          git push --set-upstream origin $BRANCH
+
+      # https://docs.github.com/en/rest/reference/pulls#create-a-pull-request
+      - name: Create PR
+        run: |
+          curl -s
+          -X POST https://api.github.com/repos/${{ github.repository }}/pulls \
+          -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -d @- << EOF
+          {
+            "head": "$BRANCH",
+            "base": "${{ secrets.base_ref }}"
+          }
+          EOF
