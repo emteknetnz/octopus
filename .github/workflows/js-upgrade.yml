@@ -53,7 +53,7 @@ jobs:
 
       - name: Create new git branch
         run: |
-          BRANCH=pulls/${{ secrets.base_ref }}/update-js-$(date +%s)
+          BRANCH=pulls/${{ github.base_ref }}/update-js-$(date +%s)
           git status
           git checkout -b $BRANCH
           git add .

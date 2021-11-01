@@ -73,7 +73,9 @@ jobs:
           
           # POST new tag to GitHub API
           # Note: secrets.GITHUB_TOKEN is an auto-generated token, no need to manually create a secret in the repo
-          curl -s -X POST https://api.github.com/repos/${{ github.repository }}/git/refs \
+          curl -s 
+          -X POST https://api.github.com/repos/${{ github.repository }}/git/refs \
+          -H "Accept: application/vnd.github.v3+json" \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -d @- << EOF
           {
