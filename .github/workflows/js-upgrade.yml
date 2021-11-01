@@ -22,14 +22,26 @@ jobs:
           node-version: ${{ steps.read-nvm.outputs.version }}
 
       - name: Install yarn
+        run: npm install --global yarn
+
+      - name: Checkout admin
+        # if ! admin
         run: |
-          npm install --global yarn
+          cd ..
+          # TODO: determine correct version with github.ref
+          git clone git@github.com:silverstripe/silverstripe-admin.git
+          yarn install
 
-      - name: Upgrade JS
-        run: |
-          # Run yarn upgarde and build js
+      # - name: Upgrade JS
+      #   run: |
+      #     # Run yarn upgrade and build js
 
-          yarn upgrade
+      #     # update yarn.lock
+      #     yarn upgrade
 
-          git diff
+        - name: Build JS
+          run: |
+            yarn build
+            git status
+
 
