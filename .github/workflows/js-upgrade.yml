@@ -1,10 +1,13 @@
 # Because we're checking out admin 1 only, we must only run this script on next-minor branches
 
-name: JS upgrade (next-minor branch only)
+name: Upgrade JS and create pull-request
 
 on:
   # TODO: cron, not push
   push:
+  # This should only be run on next-minor branches e.g. `1`, `4`
+  # This is because we need to install admin js, and we cannot detect the correct
+  # version of admin to install on non-lockstepped modules e.g. elemental
 
 jobs:
   mainjob:
@@ -29,6 +32,7 @@ jobs:
       - name: Install admin JS
         if: github.event.repository.name != 'admin'
         run: |
+          # Install admin js in sibling directory so shared components are available
           DIR=$(pwd)
           cd ..
           git clone https://github.com/silverstripe/silverstripe-admin.git
@@ -44,6 +48,7 @@ jobs:
       - name: Read package.json
         id: package-json
         run: |
+          # Read package.json to see if lint and test are runnable scripts
           LINT=0
           TEST=0
           if [ "$(jq .scripts.lint? package.json)" != "null" ]; then LINT=1; fi
@@ -69,6 +74,8 @@ jobs:
 
       - name: Git
         run: |
+          # Run git commands
+          # heads/refs/mybranch => mybranch
           BRANCH=$(echo ${{ github.ref }} | cut -c 12-)
           NEW_BRANCH=pulls/$BRANCH/update-js-$(date +%s)
           git config --local user.name "github-actions"
@@ -82,6 +89,7 @@ jobs:
       # https://docs.github.com/en/rest/reference/pulls#create-a-pull-request
       - name: Create pull-request
         run: |
+          # Create pull request via GitHub API
           curl -s \
           -X POST https://api.github.com/repos/${{ github.repository }}/pulls \
           -H "Accept: application/vnd.github.v3+json" \
@@ -90,7 +98,7 @@ jobs:
           {
             "title": "Update JS"
             "body": "Automated yarn upgrade and yarn build"
-            "head": "$NEW_BRANCH",
-            "base": "$BRANCH"
+            "head": "${NEW_BRANCH}",
+            "base": "${BRANCH}"
           }
           EOF
