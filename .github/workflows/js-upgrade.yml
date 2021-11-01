@@ -75,9 +75,11 @@ jobs:
       - name: Git
         run: |
           # Run git commands
+
           # heads/refs/mybranch => mybranch
           BRANCH=$(echo ${{ github.ref }} | cut -c 12-)
           NEW_BRANCH=pulls/$BRANCH/update-js-$(date +%s)
+
           git config --local user.name "github-actions"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b $NEW_BRANCH
@@ -86,10 +88,8 @@ jobs:
           git commit -m 'DEP Update JS'
           git push --set-upstream origin $NEW_BRANCH
 
-      # https://docs.github.com/en/rest/reference/pulls#create-a-pull-request
-      - name: Create pull-request
-        run: |
           # Create pull request via GitHub API
+          # https://docs.github.com/en/rest/reference/pulls#create-a-pull-request
           curl -s \
           -X POST https://api.github.com/repos/${{ github.repository }}/pulls \
           -H "Accept: application/vnd.github.v3+json" \
@@ -98,7 +98,7 @@ jobs:
           {
             "title": "Update JS"
             "body": "Automated yarn upgrade and yarn build"
-            "head": "${NEW_BRANCH}",
-            "base": "${BRANCH}"
+            "head": "$NEW_BRANCH",
+            "base": "$BRANCH"
           }
           EOF
