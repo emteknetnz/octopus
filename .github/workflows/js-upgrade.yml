@@ -81,7 +81,7 @@ jobs:
       # https://docs.github.com/en/rest/reference/pulls#create-a-pull-request
       - name: Create pull-request
         run: |
-          curl -s
+          curl -s \
           -X POST https://api.github.com/repos/${{ github.repository }}/pulls \
           -H "Accept: application/vnd.github.v3+json" \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
