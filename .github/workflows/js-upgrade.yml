@@ -38,15 +38,20 @@ jobs:
           yarn install
           cd $DIR
 
-      - name: Yarn
-        run: |
-          yarn upgrade
-          # TODO get eslint PR merged
-          # yarn build
-          # TMP
-          yarn test && NODE_ENV=production webpack -p --bail --progress
+      - name: Yarn upgrade
+        run: yarn upgrade
+      
+      # TODO: pending merge on https://github.com/silverstripe/eslint-config/pull/8
+      # - name: Yarn lint
+      #   run: yarn lint
 
-      - name: Git
+      - name: Yarn test
+        run: yarn test
+
+      - name: Yarn build
+        run: yarn test && NODE_ENV=production node_modules/webpack/bin/webpack.js -p --bail --progress
+
+      - name: Create new git branch
         run: |
           BRANCH=pulls/${{ secrets.base_ref }}/update-js-$(date +%s)
           git status
@@ -56,7 +61,7 @@ jobs:
           git push --set-upstream origin $BRANCH
 
       # https://docs.github.com/en/rest/reference/pulls#create-a-pull-request
-      - name: Create PR
+      - name: Create pull-request
         run: |
           curl -s
           -X POST https://api.github.com/repos/${{ github.repository }}/pulls \
