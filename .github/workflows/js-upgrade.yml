@@ -1,4 +1,6 @@
-name: JS upgrade
+# Because we're checking out admin 1 only, we must only run this script on next-minor branches
+
+name: JS upgrade (next-minor branch only)
 
 on:
   # TODO: cron, not push
@@ -24,20 +26,24 @@ jobs:
       - name: Install yarn
         run: npm install --global yarn
 
-      - name: Checkout admin
-        # if ! admin
+      - name: Install admin JS
+        if: github.event.repository.name != 'admin'
         run: |
+          DIR=$(pwd)
           cd ..
-          # TODO: determine correct version with github.ref
           git clone https://github.com/silverstripe/silverstripe-admin.git
+          mv silverstripe-admin admin
+          cd admin
+          git checkout 1
           yarn install
+          cd $DIR
 
-      # - name: Upgrade JS
-      #   run: |
-      #     # Run yarn upgrade and build js
+      - name: Update yarn.lock
+        run: |
+          # Run yarn upgrade and build js
 
-      #     # update yarn.lock
-      #     yarn upgrade
+          # update yarn.lock
+          yarn upgrade
 
       - name: Build JS
         run: |
