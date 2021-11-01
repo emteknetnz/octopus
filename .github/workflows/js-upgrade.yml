@@ -69,14 +69,15 @@ jobs:
 
       - name: Git
         run: |
-          BRANCH=pulls/${{ github.ref }}/update-js-$(date +%s)
+          BRANCH=$(echo ${{ github.ref }} | cut -c 11-)
+          NEW_BRANCH=pulls/$REF/update-js-$(date +%s)
           git config --local user.name "github-actions"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b $BRANCH
+          git checkout -b $NEW_BRANCH
           git add .
           git status
           git commit -m 'DEP Update JS'
-          git push --set-upstream origin $BRANCH
+          git push --set-upstream origin $NEW_BRANCH
 
       # https://docs.github.com/en/rest/reference/pulls#create-a-pull-request
       - name: Create pull-request
@@ -89,7 +90,7 @@ jobs:
           {
             "title": "Update JS"
             "body": "Automated yarn upgrade and yarn build"
-            "head": "$BRANCH",
-            "base": "${{ secrets.base_ref }}"
+            "head": "$NEW_BRANCH",
+            "base": "$BRANCH"
           }
           EOF
