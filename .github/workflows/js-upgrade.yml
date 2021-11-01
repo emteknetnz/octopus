@@ -1,0 +1,22 @@
+name: JS upgrade
+
+on:
+  # TODO: cron, not push
+  push:
+
+jobs:
+  mainjob:
+    name: 'Main job'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: Upgrade JS
+        run: |
+          # Run yarn upgarde and build js
+
+          yarn upgrade
+
+          git diff
+
