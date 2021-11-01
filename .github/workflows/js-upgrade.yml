@@ -12,8 +12,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Setup npm via .nvmrc
-        uses: dcodeIO/setup-node-nvm@master
+      - name: Read .nvmrc
+        run: echo ::set-output name=version::$(cat .nvmrc)
+        id: read-nvm
+
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ steps.read-nvm.outputs.version }}
 
       - name: Install yarn
         run: |
