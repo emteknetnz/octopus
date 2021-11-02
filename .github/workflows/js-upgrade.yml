@@ -72,15 +72,14 @@ jobs:
       - name: Build JS with webpack
         run: NODE_ENV=production node_modules/webpack/bin/webpack.js -p --bail --progress
 
-      - name: Set branch variables
+      - name: Git
         run: |
+          # Run git commit, push and create pull-request
+
           # heads/refs/mybranch => mybranch
           BRANCH=$(echo ${{ github.ref }} | cut -c 12-)
           NEW_BRANCH=pulls/$BRANCH/update-js-$(date +%s)
 
-      - name: Git commit and push
-        run: |
-          # Run git commands
           git config --local user.name "github-actions"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b $NEW_BRANCH
@@ -89,8 +88,6 @@ jobs:
           git commit -m 'DEP Update JS'
           git push --set-upstream origin $NEW_BRANCH
 
-      - name: Create pull-request
-        run: |
           # Create pull request via GitHub API
           # https://docs.github.com/en/rest/reference/pulls#create-a-pull-request
           curl -s \
